@@ -1,0 +1,149 @@
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.expedia.tesla</groupId>
+	<artifactId>tesla</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Tesla</name>
+	<description>Tesla Data Modelling</description>
+
+	<developers>
+		<developer>
+			<id>yzuo</id>
+			<name>Yunfei Zuo</name>
+		</developer>
+	</developers>
+
+	<modules>
+		<module>tesla-annotation</module>
+		<module>tesla-core</module>
+		<module>tesla-schema</module>
+		<module>tesla-compiler</module>
+	</modules>
+
+	<scm>
+		<connection>scm:git:git@github.com:jpmml/openscoring.git</connection>
+		<developerConnection>scm:git:git@github.com:jpmml/openscoring.git</developerConnection>
+		<url>git://github.com/jpmml/openscoring.git</url>
+		<tag>HEAD</tag>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/jpmml/openscoring/issues</url>
+	</issueManagement>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.11</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<localCheckout>true</localCheckout>
+					<pushChanges>false</pushChanges>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+		<distributionManagement>
+		<snapshotRepository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>expedia-snapshots</id>
+			<name>expedia-snapshots</name>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>expedia-releases</id>
+			<name>expedia-releases</name>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/releases</url>
+		</repository>
+	</distributionManagement>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>expedia-central</id>
+			<name>standard mirror of maven central</name>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/central/</url>
+			<layout>default</layout>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+		</pluginRepository>
+		<!-- TODO revisit pulling this into expedia central -->
+		<pluginRepository>
+			<id>eviwarePluginRepository</id>
+			<url>http://www.eviware.com/repository/maven2/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>expedia</id>
+			<name>Expedia</name>
+			<url>
+        http://nexus.sb.karmalab.net/nexus/content/groups/public
+      </url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>expedia-releases</id>
+			<name>expedia-releases</name>
+			<layout>default</layout>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/releases</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>expedia-snapshots</id>
+			<name>expedia-snapshots</name>
+			<layout>default</layout>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>expedia-central</id>
+			<name>expedia-central</name>
+			<layout>default</layout>
+			<url>http://nexus.sb.karmalab.net/nexus/content/repositories/central</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+</project>

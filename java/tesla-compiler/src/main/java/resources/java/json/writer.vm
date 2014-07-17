@@ -1,0 +1,161 @@
+########################################################################################################################
+##  Context variable requiered
+##  1. schema
+##  2. mapper 
+##  3. serialzerName
+########################################################################################################################
+
+## add boolean, int32 and uint32
+#set( $bool_desc = $mapper.getTypeDescriptor($schema.addType("boolean")) )
+#set( $int32_desc = $mapper.getTypeDescriptor( $schema.addType("int32") ) )
+#set( $uint32_desc = $mapper.getTypeDescriptor( $schema.addType("uint32") ) )
+#set( $string_desc = $mapper.getTypeDescriptor( $schema.addType("string") ) )
+
+    public static final long SCHEMA_HASH = ${schema.Version.SchemaHash}L;
+    private static final com.fasterxml.jackson.core.JsonFactory JSON_FACTORY = new com.fasterxml.jackson.core.JsonFactory();
+    private com.fasterxml.jackson.core.JsonGenerator jsonGenerator;
+    private com.expedia.tesla.serialization.ReferencePolicy refPolicy = new com.expedia.tesla.serialization.ReferencePolicy();
+	
+	${serialzerName}(java.io.OutputStream stream) throws java.io.IOException {
+        jsonGenerator = JSON_FACTORY.createGenerator(stream);
+    }
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isClass() )
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+    	jsonGenerator.writeStartObject();
+#foreach( $f in $type.AllFields )
+#set( $ftd = $mapper.getTypeDescriptor($f.Type))
+#if(${f.GetterName})
+        jsonGenerator.writeFieldName("$f.DisplayName"); 
+        write${ftd.Symbol}("$f.DisplayName", v.${f.GetterName}());
+#else
+        jsonGenerator.writeFieldName("$f.DisplayName"); 
+        write${ftd.Symbol}("$f.DisplayName", v.get${f.DisplayName}());
+#end
+#end
+		jsonGenerator.writeEndObject();
+		jsonGenerator.flush(); // JsonGenerator requires flush buffer to OutputStream. Otherwise, no content will be written to this stream.
+    }
+
+#end
+
+#end
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isNullable() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (v == null) {
+            jsonGenerator.writeNull();
+        } else {
+            write${etd.Symbol}(name, v);
+        }
+    }
+#end
+#if( $type.isArray() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        jsonGenerator.writeStartArray();
+        for ($etd.InterfaceName e : v) {
+            write${etd.Symbol}(name, e);
+        }
+        jsonGenerator.writeEndArray();
+    }
+#end
+#if( $type.isMap() )
+#set($ktd = $mapper.getTypeDescriptor($type.KeyType))
+#set($vtd = $mapper.getTypeDescriptor($type.ValueType))
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        jsonGenerator.writeStartArray();
+        for (java.util.Map.Entry<$mapper.box(${ktd.InterfaceName}), $mapper.box(${vtd.InterfaceName})> entry : v.entrySet()) {
+            write$ktd.getSymbol()(name, entry.getKey());
+            write$vtd.getSymbol()(name, entry.getValue());
+        }
+        jsonGenerator.writeEndArray();
+    }
+#end
+#if( $type.isEnum()  )
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+#set( $enumName = $td.InterfaceName.replace('$', '.') )
+        switch (v) {
+#foreach( $entry in $type.Entries )
+        case ${entry.Name}:
+            write${string_desc.Symbol}(name, "${entry.Name}");
+            break;
+#end
+        default:
+            throw new java.io.IOException(String.format(
+                "Enum value %s is not allowed field %s (type id '$type.TypeId')", 
+                v.toString(), name));
+        }
+    }
+#end
+#if( $type.isPoly() )
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+#set($tid = 0)
+#foreach( $et in $type.ElementTypes )
+#set($etd = $mapper.getTypeDescriptor($et))
+        #if($tid > 0)} else#end if (v.getClass().equals(${mapper.box($etd.InterfaceName)}.class)) {
+            write${etd.Symbol}(name, ($mapper.box(${etd.InterfaceName}))v);
+#set($tid = $tid + 1)
+#end
+        } else {
+            throw new java.io.IOException(String.format(
+                "Illegal type %s for field %s (type id '$type.TypeId')", 
+                v.getClass().toString(), name));
+        }
+    }
+#end
+#if( $type.isReference() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+#set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        jsonGenerator.writeStartObject();
+        int id = refPolicy.getOutputReferenceId(v, ${clzzName}.class);
+        if (id > 0) {
+            write_int32("@reference", id);
+        } else {
+            write_int32("@id", -id);
+            jsonGenerator.writeFieldName("@value"); 
+            write${etd.Symbol}(name, ($mapper.box(${etd.InterfaceName}))v);
+        }
+        jsonGenerator.writeEndObject();
+    }
+#end
+#if( $type.isPrimitive() )
+    public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+#if( $type.Name == "byte" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "int16" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "int32" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "int64" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "uint16" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "uint32" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "uint64" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "boolean" )
+        jsonGenerator.writeBoolean(v);
+#elseif( $type.Name == "float" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "double" )
+        jsonGenerator.writeNumber(v);
+#elseif( $type.Name == "string" )
+        jsonGenerator.writeString(v);
+#elseif( $type.Name == "binary" )
+        jsonGenerator.writeBinary(v);
+#else
+        wrong!
+#end       
+    }
+#end
+
+#end
+

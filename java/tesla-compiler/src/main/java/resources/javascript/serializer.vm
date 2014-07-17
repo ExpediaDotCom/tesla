@@ -1,0 +1,14 @@
+
+########################################################################################################################
+## Binary serializers
+########################################################################################################################
+
+#parse( "com/expedia/tesla/compiler/resources/javascript/binary/tesla_binary_encode.js")
+
+#foreach( $schema in $schemas )
+#set(   $serialzerName = "TeslaBinaryWriter_${schema.Version.Name.replaceAll('[-\.\+\-\*\(\)\[\]\{\}\s]', '_')}" )
+#set(   $deserialzerName = "TeslaBinaryReader_${schema.Version.Name.replaceAll('[-\.\+\-\*\(\)\[\]\{\}\s]', '_')}" )
+
+#parse( "com/expedia/tesla/compiler/resources/javascript/binary/writer.vm")
+
+#end

@@ -1,0 +1,31 @@
+/**
+ * ${enum.ShortName}.java
+ * 
+ * This file is generated code by Tesla compiler. Please don't edit. 
+ */
+
+#if( $enum.NameSpace )package $enum.NameSpace;
+#end
+
+import com.expedia.tesla.serialization.EnumMapper;
+
+public enum $enum.ShortName
+{
+#foreach( $entry in $enum.Entries)
+#if ($entry.Description)
+    /**
+     * $entry.Description
+     */
+#end
+    $entry.Name#if( $foreach.hasNext ),
+#else;
+#end
+#end
+
+    public final static EnumMapper<$enum.ShortName> MAPPER = 
+        new EnumMapper.Builder<$enum.ShortName>()
+#foreach( $entry in $enum.Entries)
+            .add($entry.Name, $entry.Value)
+#end
+            .build();
+}

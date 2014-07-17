@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tml="urn:expedia:tesla:tml:v2"
+  targetNamespace="urn:expedia:tesla:tml:v2" elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.0.0"
+  xml:lang="en-US" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" jaxb:version="2.1">
+  <xsd:element name="schema">
+    <xsd:annotation>
+      <xsd:documentation>Root element of a TML document.
+      </xsd:documentation>
+      <xsd:appinfo>
+        <jaxb:class name="Tml" />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="version">
+          <xsd:complexType>
+            <xsd:attribute name="name" type="xsd:string" use="required" />
+            <xsd:attribute name="number" use="optional">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:positiveInteger">
+                  <xsd:minInclusive value="1" />
+                  <xsd:maxInclusive value="65535" />
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:attribute>
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="namespace" minOccurs="0" maxOccurs="1">
+          <xsd:complexType>
+            <xsd:attribute name="name" type="tml:namespace-type" use="required" />
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="import" minOccurs="0" maxOccurs="unbounded">
+          <xsd:complexType>
+            <xsd:sequence>
+              <xsd:element name="using" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+            <xsd:attribute name="file" type="xsd:string" use="required" />
+            <xsd:attribute name="usingall" type="xsd:boolean" use="optional" default="false" />
+          </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="types">
+          <xsd:annotation>
+            <xsd:documentation>All classes defined in this schema.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType>
+            <xsd:choice maxOccurs="unbounded">
+              <xsd:element name="class" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                  <xsd:annotation>
+                    <xsd:documentation>Defines a collection of members that will be serialized atomically and can be
+                      used as a request or response in a service.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                  <xsd:sequence>
+                    <xsd:element name="field" minOccurs="0" maxOccurs="unbounded">
+                      <xsd:annotation>
+                        <xsd:documentation>Members are variables of any type that is declared directly in a class. The
+                          element value defines the default value for the member which will be used when it is not
+                          present in a serialized old version.
+                        </xsd:documentation>
+                      </xsd:annotation>
+                      <xsd:complexType>
+                        <xsd:attribute name="name" type="tml:name-type" use="required">
+                          <xsd:annotation>
+                            <xsd:documentation>Name of the member.</xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="displayname" type="tml:name-type" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>
+                              Display name used for this member.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="nullable" type="xsd:boolean" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>If true, the member must always be set to something other than null at
+                              serialization time. By default, it is false. This attribute can only be set for reference
+                              types (e.g.: Class references, Binary, multi-dimensional types).
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="type" type="tml:type-id-type" use="required">
+                          <xsd:annotation>
+                            <xsd:documentation>
+                              The type of the member, which can be:
+                              * Boolean
+                              * Byte
+                              * Int16
+                              * UInt16
+                              *
+                              Int32
+                              * UInt32
+                              * Int64
+                              * UInt64
+                              * Float
+                              * Double
+                              * Binary
+                              * String
+                              * Class (specified as the class
+                              name)
+                              * Enum (specified as the class name)
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="rank" type="xsd:unsignedByte" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>
+                              Defines if this is a sequence type, and if so the order. Zero (0)
+                              indicates that it is a scalar type, while one (1) indicates a single dimensional sequence
+                              type and so forth.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="reference" type="xsd:boolean" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>Can only be used for object types. If true, this field will be serialized
+                              as reference. This is false by default.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="description" type="xsd:string" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>
+                              Description of how to use this member.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:anyAttribute processContents="lax" />
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="name" type="tml:name-type" use="required">
+                    <xsd:annotation>
+                      <xsd:documentation>Name of the class.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:attribute>
+                  <xsd:attribute name="extends" type="tml:name-list-type">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        A comma-separated list of class references that is extended by this class. This
+                        means that all members from the referred to classes are included before all members of this
+                        class. If multiple referred to classes are specified, members are added from the left to the
+                        right of the list in order. For example: "a, b" means all members of "a" will be added before
+                        "b" and then finally the class' members themselves.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:attribute>
+                  <xsd:attribute name="abstract" type="xsd:boolean">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        Indicates that this class definition will never be instantiated into objects,
+                        but rather extended by other classes.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:attribute>
+                  <xsd:attribute name="description" type="xsd:string">
+                    <xsd:annotation>
+                      <xsd:documentation>
+                        Description of how to use this class.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:attribute>
+                </xsd:complexType>
+
+              </xsd:element>
+              <xsd:element name="enum" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                  <xsd:annotation>
+                    <xsd:documentation>define Tesla enum type. Every enum type has a name and a list of enum values.
+                      Each enum value must has a name and an integer value.
+                    </xsd:documentation>
+                  </xsd:annotation>
+                  <xsd:sequence>
+                    <xsd:element name="entry" minOccurs="1" maxOccurs="unbounded">
+                      <xsd:complexType mixed="true">
+                        <xsd:attribute name="name" type="tml:name-type" use="required">
+                          <xsd:annotation>
+                            <xsd:documentation>Name of the enum entry.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="value" type="xsd:int" use="required">
+                          <xsd:annotation>
+                            <xsd:documentation>Integer value of enum entry.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                        <xsd:attribute name="description" type="xsd:string" use="optional">
+                          <xsd:annotation>
+                            <xsd:documentation>Documentation of this enum.
+                            </xsd:documentation>
+                          </xsd:annotation>
+                        </xsd:attribute>
+                      </xsd:complexType>
+                    </xsd:element>
+                  </xsd:sequence>
+                  <xsd:attribute name="name" type="tml:name-type" use="required" />
+                  <xsd:attribute name="description" type="xsd:string" use="optional">
+                    <xsd:annotation>
+                      <xsd:documentation>Documentation of this enum.
+                      </xsd:documentation>
+                    </xsd:annotation>
+                  </xsd:attribute>
+                </xsd:complexType>
+              </xsd:element>
+            </xsd:choice>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:simpleType name="name-type">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="type-id-type">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[\(|\)|\w|\.|,|\[\]]+" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="namespace-type">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="([A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*)*" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="name-list-type">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[\(|\)|\w|\.|,(\s)*|\[\]]+" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>
