@@ -15,20 +15,20 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 
-import com.expedia.tesla.ISchemaVersion;
 import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.utils.BitConverter;
 import com.expedia.tesla.utils.Unsigned;
 
 /**
- * The Class BinaryWriter.
+ * Encode basic type values in Tesla binary encoding.
  * 
- * @see com.expedia.tesla.serialization.ITeslaWriter
+ * @author Yunfei Zuo (yzuo@expedia.com)
  */
-public class BinaryWriter implements Closeable, Flushable {
+public class BinaryWriter implements TeslaWriter, Closeable, Flushable {
+
 	private static final Charset UTF8 = Charset.forName("UTF-8");
 
-	private ISchemaVersion version;
+	private SchemaVersion version;
 	private OutputStream stream;
 
 	/**
@@ -51,7 +51,7 @@ public class BinaryWriter implements Closeable, Flushable {
 	 * @param version
 	 *            schema version object
 	 */
-	public BinaryWriter(OutputStream stream, ISchemaVersion version) {
+	public BinaryWriter(OutputStream stream, SchemaVersion version) {
 		this.version = version;
 		if (stream == null) {
 			throw new IllegalArgumentException("stream");
@@ -60,190 +60,254 @@ public class BinaryWriter implements Closeable, Flushable {
 	}
 
 	/**
+	 * Get current schema version.
+	 * 
 	 * @return the version
 	 */
-	public ISchemaVersion getVersion() {
+	public SchemaVersion getVersion() {
 		return version;
 	}
 
+	/**
+	 * Close the underlying output stream.
+	 * 
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void close() throws IOException {
 		this.stream.close();
 	}
 
+	/**
+	 * Flush the underlying output stream.
+	 * 
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void flush() throws IOException {
 		this.stream.flush();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a boolean value in Tesla binary encoded {@code boolean} value
+	 * format.
+	 * <p>
+	 * In order to make it easier to detect corrupted data, the boolean value
+	 * {@code true} is encoded in one byte {@value TeslaConstants.BOOLEAN_TRUE}
+	 * and {@code false} is encoded in {@value TeslaConstants.BOOLEAN_FALSE}.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeBoolean(java.lang.String
-	 * , boolean)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeBoolean(String name, boolean value) throws IOException {
 		this.stream.write(value ? TeslaConstants.BOOLEAN_TRUE
 				: TeslaConstants.BOOLEAN_FALSE);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a byte value in Tesla binary encoded {@code byte} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeByte(java.lang.String,
-	 * byte)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeByte(String name, byte value) throws IOException {
 		this.stream.write(Unsigned.toUByte(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a 16-bit integer value in Tesla binary encoded {@code int16} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeInt16(java.lang.String,
-	 * short)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeInt16(String name, short value) throws IOException {
 		this.writeVInt(((value << 1) ^ (value >> 15)) & 0xffff);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a 32-bit integer value in Tesla binary encoded {@code int32} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeInt32(java.lang.String,
-	 * int)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeInt32(String name, int value) throws IOException {
 		this.writeVInt(((value << 1) ^ (value >> 31)) & 0xffffffffL);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a 64-bit integer value in Tesla binary encoded {@code int64} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeInt64(java.lang.String,
-	 * long)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeInt64(String name, long value) throws IOException {
 		this.writeVInt((value << 1) ^ (value >> 63));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write an unsigned 16-bit integer value in Tesla binary encoded {@code uint16} value format.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types and convert between them.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeUInt16(java.lang.String
-	 * , int)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeUInt16(String name, short value) throws IOException {
 		this.writeVInt(Unsigned.toUInt16(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write an unsigned 32-bit integer value in Tesla binary encoded {@code uint32} value format.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types and convert between them.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeUInt32(java.lang.String
-	 * , long)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeUInt32(String name, int value) throws IOException {
 		this.writeVInt(Unsigned.toUInt32(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write an unsigned 64-bit integer value in Tesla binary encoded {@code uint64} value format.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types and convert between them.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeUInt64(java.lang.String
-	 * , java.math.BigInteger)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeUInt64(String name, long value) throws IOException {
 		this.writeVInt(Unsigned.toUInt64(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a 32-bit floating point number in Tesla binary encoded {@code float} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeFloat(java.lang.String,
-	 * float)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeFloat(String name, float value) throws IOException {
 		this.stream.write(BitConverter.getBytes(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a 64-bit floating point number in Tesla binary encoded {@code double} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeDouble(java.lang.String
-	 * , double)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @exception IOException
+	 *                On output error.
 	 */
 	public void writeDouble(String name, double value) throws IOException {
 		this.stream.write(BitConverter.getBytes(value));
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a binary buffer in Tesla binary encoded {@code binary} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeBinary(java.lang.String
-	 * , byte[], boolean)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @throws IOException On output error.
 	 */
-	public void writeBinary(String name, byte[] buffer, boolean nullable)
-			throws TeslaSerializationException, IOException {
-		if (this.writeNullableFlag(buffer, nullable))
-			return;
+	public void writeBinary(String name, byte[] buffer)
+			throws IOException {
 		this.writeVInt(buffer.length);
 		this.stream.write(buffer);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Write a string in Tesla binary encoded {@code string} value format.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeString(java.lang.String
-	 * , java.lang.String, boolean)
+	 * @param name
+	 *            The name of current value.
+	 * @param value
+	 *            The value to write.
+	 * 
+	 * @throws IOException On output error.
 	 */
-	public void writeString(String name, String value, boolean nullable)
+	public void writeString(String name, String value)
 			throws TeslaSerializationException, IOException {
-		if (this.writeNullableFlag(value, nullable))
-			return;
 		final byte[] buffer = value.getBytes(UTF8);
 		this.writeVInt(buffer.length);
 		this.stream.write(buffer);
 	}
 
 	/**
-	 * Write nullable flag.
+	 * Write an enumeration value in Tesla binary encoded {@code enum} value format.
 	 * 
+	 * @param name
+	 *            The name of current value.
 	 * @param value
-	 *            the value
-	 * @param nullable
-	 *            the nullable
-	 * @return true if value is null
-	 * @throws IOException
-	 * @throws TeslaSerializationException
+	 *            The value to write.
+	 * 
+	 * @throws IOException On output error.
 	 */
-	protected boolean writeNullableFlag(Object value, boolean nullable)
-			throws IOException, TeslaSerializationException {
-		if (nullable) {
-			writeNull(value == null);
-			return value == null;
-		}
-		if (value == null) {
-			throw new TeslaSerializationException(
-					"Null value was written as a non-nullable member.");
-		}
-		return false;
-	}
-
-	protected void writeNull(boolean isNull) throws IOException {
-		this.writeBoolean(null, isNull);
+	public <T extends Enum<T>> void writeEnum(String name, T value,
+			EnumMapper<T> mapper) throws IOException {
+		writeInt32(name, mapper.toInteger(value));
 	}
 
 	protected void writeVInt(BigInteger value) throws IOException {
@@ -256,21 +320,9 @@ public class BinaryWriter implements Closeable, Flushable {
 
 	protected void writeVInt(long value) throws IOException {
 		do {
-			// TODO: Investigate unrolling
 			int lsb = (int) (value & 0x7f);
 			this.stream.write(lsb | ((value >>>= 7) == 0 ? 0 : 0x80));
 		} while (value != 0);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaWriter#writeEnum(java.lang.String,
-	 * java.lang.Enum, com.expedia.tesla.serialization.EnumMapper)
-	 */
-	public <T extends Enum<T>> void writeEnum(String name, T value,
-			EnumMapper<T> mapper) throws IOException {
-		writeInt32(name, mapper.toInteger(value));
-	}
 }

@@ -1,4 +1,10 @@
-package com.expedia.tesla.schema.tml.v2;
+/**
+ * TmlProcessorTest.java
+ * 
+ * Copyright 2014 Expedia, Inc. All rights reserved.
+ * EXPEDIA PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ */
+package com.expedia.tesla.schema;
 
 import static org.junit.Assert.*;
 
@@ -9,18 +15,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.expedia.tesla.SchemaVersion;
-import com.expedia.tesla.schema.Array;
-import com.expedia.tesla.schema.Class;
-import com.expedia.tesla.schema.Enum;
-import com.expedia.tesla.schema.EnumEntry;
-import com.expedia.tesla.schema.Map;
-import com.expedia.tesla.schema.Nullable;
-import com.expedia.tesla.schema.Poly;
-import com.expedia.tesla.schema.Primitive;
-import com.expedia.tesla.schema.Reference;
-import com.expedia.tesla.schema.Schema;
-import com.expedia.tesla.schema.TeslaSchemaException;
-import com.expedia.tesla.schema.Type;
 
 public class TmlProcessorTest {
 	@Rule
@@ -28,9 +22,7 @@ public class TmlProcessorTest {
 
 	@Test
 	public void parseSuccess() throws Exception {
-		List<Object> types = TmlProcessor
-				.load("src/test/resources/example-v2.tml");
-		Schema schema = TmlProcessor.build(types, new SchemaVersion(0));
+		Schema schema = TmlProcessor.build("src/test/resources/example-v2.tml");
 
 		Class person = (Class) schema
 				.findType("class<com.expedia.tesla.example.Person>");

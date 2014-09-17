@@ -4,13 +4,17 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
 import com.expedia.tesla.schema.Array;
 import com.expedia.tesla.schema.Class;
 import com.expedia.tesla.schema.Enum;
+import com.expedia.tesla.schema.EnumEntry;
+import com.expedia.tesla.schema.Field;
 import com.expedia.tesla.schema.Map;
 import com.expedia.tesla.schema.Nullable;
 import com.expedia.tesla.schema.Primitive;
@@ -202,35 +206,37 @@ public class JavaTypeMapper {
 	 * properties. If you want an property to be not nullable, use annotation
 	 * {@code NotNullable}.
 	 * 
-	 * @param schema
+	 * @param schemaBuilder
 	 *            All non-primitive Tesla types must be defined inside a schema.
 	 *            This is the schema object into which the Tesla type will be
 	 *            generated.
 	 * 
-	 * @param t
+	 * @param javaType
 	 *            The java class object.
 	 * 
 	 * @return The Tesla type created from the java class by reflection.
 	 * 
 	 * @throws TeslaSchemaException
 	 */
-	public Type fromJavaClass(Schema schema, java.lang.Class<?> t)
+	public Type fromJavaClass(Schema.SchemaBuilder schemaBuilder, java.lang.Class<?> javaType)
 			throws TeslaSchemaException {
-		String classTypeId = Class.nameToId(t.getCanonicalName());
-		Class clss = (Class) schema.findType(classTypeId);
+		String classTypeId = Class.nameToId(javaType.getCanonicalName());
+		Class clss = (Class) schemaBuilder.findType(classTypeId);
 		if (clss != null) {
 			return clss;
 		}
 
-		clss = (Class) schema.addType(classTypeId);
-		java.lang.Class<?> base = t.getSuperclass();
+		clss = (Class) schemaBuilder.addType(classTypeId);
+
+		Class superClass = null;
+		java.lang.Class<?> base = javaType.getSuperclass();
 		if (base != null && base != java.lang.Object.class) {
-			Class superClass = (Class) fromJavaClass(schema, t.getSuperclass());
-			clss.setBases(Arrays.asList(new Class[] { superClass }));
+			superClass = (Class) fromJavaClass(schemaBuilder, javaType.getSuperclass());
 		}
 
+		List<Field> fields = new ArrayList<>();
 		for (PropertyDescriptor propDesc : PropertyUtils
-				.getPropertyDescriptors(t)) {
+				.getPropertyDescriptors(javaType)) {
 			Type fieldType = null;
 			String fieldName = propDesc.getName();
 			Method readMethod = propDesc.getReadMethod();
@@ -254,15 +260,15 @@ public class JavaTypeMapper {
 				typeId = tidAnnotation.value();
 			}
 			if (typeId != null) {
-				fieldType = schema.addType(typeId);
+				fieldType = schemaBuilder.addType(typeId);
 			} else {
 				java.lang.reflect.Type propType = readMethod
 						.getGenericReturnType();
 				readMethod.getReturnType();
-				fieldType = fromJava(schema, propType);
+				fieldType = fromJava(schemaBuilder, propType);
 				if (!(propType instanceof java.lang.Class<?> && ((java.lang.Class<?>) propType)
 						.isPrimitive())) {
-					fieldType = schema.addType(String.format("nullable<%s>",
+					fieldType = schemaBuilder.addType(String.format("nullable<%s>",
 							fieldType.getTypeId()));
 				}
 				com.expedia.tesla.schema.annotation.NotNullable anntNotNullable = readMethod
@@ -285,7 +291,7 @@ public class JavaTypeMapper {
 				if (!fieldType.isReference()
 						&& readMethod
 								.getAnnotation(com.expedia.tesla.schema.annotation.Reference.class) != null) {
-					fieldType = schema.addType(String.format("reference<%s>",
+					fieldType = schemaBuilder.addType(String.format("reference<%s>",
 							fieldType.getTypeId()));
 				}
 			}
@@ -308,71 +314,74 @@ public class JavaTypeMapper {
 			attributes.put("getter", getter);
 			attributes.put("setter", setter);
 
-			clss.addField(fieldName, fieldDisplayName, fieldType, attributes,
-					null);
+			new Field(fieldName, fieldDisplayName, fieldType, attributes, null);
 		}
+		
+		clss.define(Arrays.asList(new Class[]{superClass}), fields, null);
 		return clss;
 	}
 
-	private Type fromJavaEnum(Schema schema, java.lang.Class<?> t)
+	private Type fromJavaEnum(Schema.SchemaBuilder schemaBuilder, java.lang.Class<?> t)
 			throws TeslaSchemaException {
 		if (!t.isEnum()) {
 			throw new TeslaSchemaException("Not an enum type.");
 		}
-		Enum enm = (Enum) schema.addType(Enum.nameToId(t.getCanonicalName()));
+		Enum enm = (Enum) schemaBuilder.addType(Enum.nameToId(t.getCanonicalName()));
+		List<EnumEntry> entries = new ArrayList<>();
 		for (Object v : t.getEnumConstants()) {
 			java.lang.Enum<?> e = (java.lang.Enum<?>) v;
 			if (!enm.hasValue(e.name())) {
-				enm.addValue(e.name(), e.ordinal(), null);
+				entries.add(new EnumEntry(e.name(), e.ordinal(), null));
 			}
 		}
+		enm.define(entries, null);
 		return enm;
 	}
 
-	private Type fromJavaForward(Schema schema, java.lang.Class<?> jt)
+	private Type fromJavaForward(Schema.SchemaBuilder schemaBuilder, java.lang.Class<?> jt)
 			throws TeslaSchemaException {
 		// TODO: handle classes derived from Java collections.
 
 		if (jt.isPrimitive() || jt == String.class || jt == byte[].class
 				|| PRIM_INDEX.containsKey(jt.getCanonicalName())) {
 			Primitive p = PRIM_INDEX.get(jt.getCanonicalName());
-			return schema.addType(p.getTypeId());
+			return schemaBuilder.addType(p.getTypeId());
 		}
 
 		if (jt.isEnum()) {
 			// enum
-			return fromJavaEnum(schema, jt);
+			return fromJavaEnum(schemaBuilder, jt);
 		}
 
 		if (jt.isArray()) {
 			// native array int[]
-			Type elementType = fromJava(schema, jt.getComponentType());
+			Type elementType = fromJava(schemaBuilder, jt.getComponentType());
 			String tid = String.format("array<%s>", elementType.getTypeId());
-			return schema.addType(tid);
+			return schemaBuilder.addType(tid);
 		}
 
 		// this must be class or interface
-		return fromJavaClass(schema, jt);
+		return fromJavaClass(schemaBuilder, jt);
 	}
 
-	private Type fromJava(Schema schema, java.lang.reflect.Type jt)
+	private Type fromJava(Schema.SchemaBuilder schemaBuilder, java.lang.reflect.Type jt)
 			throws TeslaSchemaException {
 		if (jt instanceof java.lang.Class) {
-			return fromJavaForward(schema, (java.lang.Class<?>) jt);
+			return fromJavaForward(schemaBuilder, (java.lang.Class<?>) jt);
 		} else if (jt instanceof java.lang.reflect.WildcardType) {
 			// ? extends Interface
 			java.lang.reflect.WildcardType wt = (java.lang.reflect.WildcardType) jt;
-			return fromJava(schema, wt.getUpperBounds()[0]);
+			return fromJava(schemaBuilder, wt.getUpperBounds()[0]);
 		} else if (jt instanceof java.lang.reflect.GenericArrayType) {
 			// T[]
 			java.lang.reflect.GenericArrayType ga = (java.lang.reflect.GenericArrayType) jt;
-			Type elementType = fromJava(schema, ga.getGenericComponentType());
-			return schema.addType(String.format("array<%s>",
+			Type elementType = fromJava(schemaBuilder, ga.getGenericComponentType());
+			return schemaBuilder.addType(String.format("array<%s>",
 					elementType.getTypeId()));
 		} else if (jt instanceof TypeVariable) {
 			// T
 			TypeVariable<?> tv = (TypeVariable<?>) jt;
-			return fromJava(schema, tv.getBounds()[0]);
+			return fromJava(schemaBuilder, tv.getBounds()[0]);
 		} else if (jt instanceof ParameterizedType) {
 			ParameterizedType pt = (ParameterizedType) jt;
 			java.lang.Class<?> rt = (java.lang.Class<?>) pt.getRawType();
@@ -382,8 +391,8 @@ public class JavaTypeMapper {
 						.getActualTypeArguments()[0];
 				java.lang.reflect.Type vt = (java.lang.reflect.Type) pt
 						.getActualTypeArguments()[1];
-				Type keyType = fromJava(schema, kt);
-				Type valueType = fromJava(schema, vt);
+				Type keyType = fromJava(schemaBuilder, kt);
+				Type valueType = fromJava(schemaBuilder, vt);
 				String fs = null;
 				java.lang.Class<?> rawType = (java.lang.Class<?>) pt
 						.getRawType();
@@ -394,13 +403,13 @@ public class JavaTypeMapper {
 				}
 				String tid = String.format(fs, keyType.getTypeId(),
 						valueType.getTypeId());
-				return schema.addType(tid);
+				return schemaBuilder.addType(tid);
 			} else if (java.util.Collection.class.isAssignableFrom(rt)) {
 				// Collection array (List<?>, Set<?>), use Collection and
 				// ArrayList by default
 				java.lang.reflect.Type et = (java.lang.reflect.Type) pt
 						.getActualTypeArguments()[0];
-				Type elementType = fromJava(schema, et);
+				Type elementType = fromJava(schemaBuilder, et);
 				String fs = null;
 				java.lang.Class<?> rawType = (java.lang.Class<?>) pt
 						.getRawType();
@@ -415,10 +424,10 @@ public class JavaTypeMapper {
 					fs = "array[" + rawType.getCanonicalName() + "]<%s>";
 				}
 				String tid = String.format(fs, elementType.getTypeId());
-				return schema.addType(tid);
+				return schemaBuilder.addType(tid);
 			}
 
-			return fromJavaForward(schema, rt);
+			return fromJavaForward(schemaBuilder, rt);
 		} else {
 			throw new AssertionError("BUG");
 		}

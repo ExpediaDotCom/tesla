@@ -8,7 +8,6 @@
 
 package com.expedia.tesla.compiler;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -33,10 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
@@ -63,13 +59,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.expedia.tesla.TeslaException;
+import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.TeslaVersion;
 import com.expedia.tesla.compiler.plugins.JavaTypeMapper;
 import com.expedia.tesla.schema.Schema;
-import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.TeslaSchemaException;
-import com.expedia.tesla.schema.tml.v2.TmlProcessor;
 
 /**
  * Telsa compiler compiles Tesla schema file (TML) into source code. This is the
@@ -135,13 +129,13 @@ public class Compiler {
 			ver = new SchemaVersion(0L, vno, vname, null);
 		}
 		JavaTypeMapper mapper = new JavaTypeMapper();
-		Schema schema = new Schema();
-		schema.setVersion(ver);
+		Schema.SchemaBuilder schemaBuilder = new Schema.SchemaBuilder();
+		schemaBuilder.setVersion(ver);
 
 		for (String name : cmdopt.genTmlRootClasses) {
 			try {
 				java.lang.Class<?> clzz = loadClass(name, cmdopt.classpath);
-				mapper.fromJavaClass(schema, clzz);
+				mapper.fromJavaClass(schemaBuilder, clzz);
 			} catch (ClassNotFoundException ex) {
 				throw new TeslaCompilerException(
 						String.format(
@@ -150,7 +144,7 @@ public class Compiler {
 								name), ex);
 			}
 		}
-		TmlProcessor.save(schema, new FileOutputStream(cmdopt.tmlFiles[0]));
+		schemaBuilder.build().save(new FileOutputStream(cmdopt.tmlFiles[0]));
 	}
 
 	/**
@@ -187,7 +181,7 @@ public class Compiler {
 				TmlVersionInfo vi;
 				vi = getTmlVersion(tml);
 				if (vi.teslaVersion == TeslaVersion.V2) {
-					Schema schema = TmlProcessor.build(tml);
+					Schema schema = Schema.build(tml);
 					schemas.add(schema);
 				} else {
 					for (short i = vi.minSchemaVersion; i <= vi.maxSchemaVersion; i++) {
@@ -211,7 +205,7 @@ public class Compiler {
 						File temp = File.createTempFile(
 								String.format("%s-v%d", tml, i), ".tmp");
 
-						schemas.add(TmlProcessor.build(temp.getAbsolutePath()));
+						schemas.add(Schema.build(temp.getAbsolutePath()));
 					}
 				}
 			}

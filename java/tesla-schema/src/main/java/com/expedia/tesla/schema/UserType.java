@@ -9,6 +9,7 @@ package com.expedia.tesla.schema;
 public abstract class UserType extends Type {
 	protected String name;
 	protected String description;
+	protected boolean isDefined = false;
 
 	public UserType() {
 	}
@@ -40,6 +41,14 @@ public abstract class UserType extends Type {
 
 	public String getNameSpace() {
 		return toNameSpace(name);
+	}
+	
+	protected void define() {
+		isDefined = true;
+	}
+	
+	boolean isDefined() {
+		return isDefined;
 	}
 
 	private static String[] splitFullName(String fullName) {

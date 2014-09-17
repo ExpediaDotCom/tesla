@@ -24,13 +24,13 @@ package com.expedia.tesla;
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>
  * 
  */
-public class SchemaVersion implements Comparable<SchemaVersion>, ISchemaVersion {
+public class SchemaVersion implements Comparable<SchemaVersion> {
 	private long schemaHash;
-	private short versionNumber;
+	private int versionNumber;
 	private String name;
 	private String tmlFileName;
 
-	public SchemaVersion(long schemaHash, short versionNumber, String name,
+	public SchemaVersion(long schemaHash, int versionNumber, String name,
 			String tmlFileName) {
 		this.name = name;
 		this.schemaHash = schemaHash;
@@ -42,7 +42,7 @@ public class SchemaVersion implements Comparable<SchemaVersion>, ISchemaVersion 
 		this(schemaHash, (short) 0, null, null);
 	}
 
-	public SchemaVersion(short versionNumber) {
+	public SchemaVersion(int versionNumber) {
 		this(versionNumber, versionNumber, null, null);
 	}
 
@@ -51,27 +51,22 @@ public class SchemaVersion implements Comparable<SchemaVersion>, ISchemaVersion 
 				.getName(), version.tmlFileName);
 	}
 
-	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
 	public String getTmlFileName() {
 		return tmlFileName;
 	}
 
-	@Override
-	public short getVersionNumber() {
+	public int getVersionNumber() {
 		return versionNumber;
 	}
 
-	@Override
 	public long getSchemaHash() {
 		return schemaHash;
 	}
 
-	@Override
 	public int compareTo(SchemaVersion o) {
 		long d = this.schemaHash - o.schemaHash;
 		return d == 0 ? 0 : (d < 0 ? -1 : 1);

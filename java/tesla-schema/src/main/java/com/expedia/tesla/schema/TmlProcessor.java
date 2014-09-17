@@ -5,7 +5,7 @@
  * Copyright 2013 Expedia, Inc. All rights reserved.
  * EXPEDIA PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package com.expedia.tesla.schema.tml.v2;
+package com.expedia.tesla.schema;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +41,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.xml.sax.SAXParseException;
+import org.xml.sax.SAXException;
 
 import com.expedia.tesla.schema.Class;
 import com.expedia.tesla.schema.Enum;
@@ -52,6 +52,11 @@ import com.expedia.tesla.schema.Schema;
 import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.TeslaSchemaException;
 import com.expedia.tesla.schema.Type;
+import com.expedia.tesla.schema.tml.v2.Tml;
+import com.expedia.tesla.schema.tml.v2.Tml.Import;
+import com.expedia.tesla.schema.tml.v2.Tml.Types;
+import com.expedia.tesla.schema.tml.v2.Tml.Version;
+import com.expedia.tesla.schema.tml.v2.Tml.Types.Enum.Entry;
 
 /**
  * TML file is an user friendly Tesla schema file format. It will be
@@ -67,7 +72,7 @@ import com.expedia.tesla.schema.Type;
  * @author Yunfei Zuo (yzuo@expedia.com)
  * 
  */
-public abstract class TmlProcessor {
+abstract class TmlProcessor {
 
 	private static Set<String> PRIMITIVE_NAMES = new TreeSet<String>();
 	private static JAXBContext jaxbContext;
@@ -95,15 +100,15 @@ public abstract class TmlProcessor {
 	 * 
 	 * @throws Exception
 	 */
-	public static List<Object> load(String path) throws Exception {
+	public static List<Object> load(String path) throws TeslaSchemaException,
+			IOException {
 		File file = new File(path);
 		TmlGraph graph = new TmlGraph(file);
 		preprocess(graph, file);
 		return getAllUserTypes(graph, file);
 	}
 
-	public static void save(Schema schema, OutputStream os) throws IOException,
-			JAXBException {
+	public static void save(Schema schema, OutputStream os) throws IOException, JAXBException {
 		List<Object> userTypes = new ArrayList<Object>();
 		for (Type t : schema.getTypes()) {
 			if (t.isClass()) {
@@ -195,7 +200,8 @@ public abstract class TmlProcessor {
 		return PRIMITIVE_NAMES.contains(name.toLowerCase());
 	}
 
-	private static void preprocess(TmlGraph graph, File file) throws Exception {
+	private static void preprocess(TmlGraph graph, File file)
+			throws TeslaSchemaException, IOException {
 		// Convert short type declaration names to full names
 		dfs(graph, file, new TmlVisitor() {
 			@Override
@@ -306,10 +312,8 @@ public abstract class TmlProcessor {
 		if (tokens.length >= 3) {
 			String id = "";
 			for (int i = 0; i < tokens.length; i++) {
-				if (!tokens[i]
-						.matches(",|<|>|\\[|\\]|array|map|nullable|reference|poly")) {
-					tokens[i] = resolveTypeRefernceToTypeId(tokens[i],
-							defaultNamespace, currentUserTypes,
+				if (!tokens[i].matches(",|<|>|\\[|\\]|array|map|nullable|reference|poly")) {
+					tokens[i] = resolveTypeRefernceToTypeId(tokens[i], defaultNamespace, currentUserTypes, 
 							importedUserTypes);
 				}
 				id += tokens[i];
@@ -398,31 +402,34 @@ public abstract class TmlProcessor {
 	}
 
 	public static long getSchemaHash(String filename)
-			throws NoSuchAlgorithmException, IOException {
+			throws TeslaSchemaException, IOException {
 		return getSchemaHash(new FileInputStream(filename));
 	}
 
 	private static long getSchemaHash(InputStream is)
-			throws NoSuchAlgorithmException, IOException {
-		MessageDigest md = MessageDigest.getInstance("SHA1");
+			throws TeslaSchemaException, IOException {
+		MessageDigest md = null;
 		try {
-			DigestInputStream dis = new DigestInputStream(is, md);
+			md = MessageDigest.getInstance("SHA1");
+		} catch (NoSuchAlgorithmException ex) {
+			throw new TeslaSchemaException(ex.getMessage(), ex);
+		}
+
+		try (DigestInputStream dis = new DigestInputStream(is, md)) {
 			while (dis.read() != -1)
 				;
 			byte[] digest = md.digest();
 			return (new BigInteger(digest)).longValue();
-		} finally {
-			is.close();
 		}
 	}
 
 	private static void dfs(TmlGraph graph, File root, TmlVisitor visitor)
-			throws Exception {
+			throws TeslaSchemaException, IOException {
 		dfs(graph, root, new HashSet<File>(), visitor);
 	}
 
 	private static void dfs(TmlGraph graph, File current, Set<File> visited,
-			TmlVisitor visitor) throws Exception {
+			TmlVisitor visitor) throws TeslaSchemaException, IOException {
 		if (visited.contains(current)) {
 			return;
 		}
@@ -437,7 +444,7 @@ public abstract class TmlProcessor {
 	}
 
 	private static List<Object> getAllUserTypes(TmlGraph graph, File root)
-			throws Exception {
+			throws TeslaSchemaException, IOException {
 		final List<Object> userTypes = new ArrayList<Object>();
 		dfs(graph, root, new TmlVisitor() {
 			@Override
@@ -448,7 +455,7 @@ public abstract class TmlProcessor {
 		return userTypes;
 	}
 
-	public static Schema build(String path) throws Exception {
+	public static Schema build(String path) throws TeslaSchemaException, IOException {
 		List<Object> types = TmlProcessor.load(path);
 		long hash = TmlProcessor.getSchemaHash(path);
 		Tml.Version ver = TmlGraph.unmarshallTml(new File(path)).getVersion();
@@ -459,45 +466,37 @@ public abstract class TmlProcessor {
 
 	public static com.expedia.tesla.schema.Schema build(List<Object> types,
 			SchemaVersion ver) throws TeslaSchemaException {
-		com.expedia.tesla.schema.Schema schema = new com.expedia.tesla.schema.Schema();
-		Set<String> userTypeIdSet = new TreeSet<String>();
+		com.expedia.tesla.schema.Schema.SchemaBuilder schema = new com.expedia.tesla.schema.Schema.SchemaBuilder();
 
 		for (Object type : types) {
 			// build classes, without fields.
 			if (type instanceof Tml.Types.Class) {
 				Tml.Types.Class c = (Tml.Types.Class) type;
 				String id = Class.nameToId(c.getName());
-				userTypeIdSet.add(id);
-
 				Class clss = (Class) schema.addType(id);
+				
+			} else if (type instanceof Tml.Types.Enum) {
+				// build enums, without entries.
+				Tml.Types.Enum e = (Tml.Types.Enum) type;
+				String id = Enum.nameToId(e.getName());
+				Enum enm = (Enum) schema.addType(id);
+			}
+		}
+
+		for (Object type : types) {
+			if (type instanceof Tml.Types.Class) {
+				Tml.Types.Class c = (Tml.Types.Class) type;
+				String id = Class.nameToId(c.getName());
+				
+				// define class with base classes, fields and description.
 				List<Class> bases = new ArrayList<Class>();
 				if (c.getExtends() != null && !c.getExtends().isEmpty()) {
 					for (String b : c.getExtends().split(",")) {
 						Class base = (Class) schema.addType(b);
 						bases.add(base);
 					}
-					clss.setBases(bases);
 				}
-				clss.setDescription(c.getDescription());
-			} else if (type instanceof Tml.Types.Enum) {
-				// build enums, without entries.
-				Tml.Types.Enum e = (Tml.Types.Enum) type;
-				String id = Enum.nameToId(e.getName());
-				userTypeIdSet.add(id);
-
-				Enum enm = (Enum) schema.addType(id);
-				enm.setName(e.getName());
-				enm.setDescription(e.getDescription());
-			}
-		}
-
-		for (Object type : types) {
-			// build class fields
-			if (type instanceof Tml.Types.Class) {
-				Tml.Types.Class c = (Tml.Types.Class) type;
-				Class cls = (Class) schema
-						.findType(Class.nameToId(c.getName()));
-
+				
 				List<Field> fields = new ArrayList<Field>();
 				for (Tml.Types.Class.Field f : c.getField()) {
 					Field field = new Field();
@@ -506,39 +505,33 @@ public abstract class TmlProcessor {
 					field.setType(schema.addType(f.getType()));
 					field.setDescription(f.getDescription());
 					Map<String, String> attributes = new TreeMap<String, String>();
-					for (Map.Entry<QName, String> attr : f.getOtherAttributes()
-							.entrySet()) {
+					for (Map.Entry<QName, String> attr : f.getOtherAttributes().entrySet()) {
 						attributes.put(attr.getKey().getLocalPart(),
 								attr.getValue());
 					}
 					field.setAttributes(attributes);
 					fields.add(field);
 				}
-				cls.setFields(fields);
+				
+				Class cls = (Class) schema.findType(Class.nameToId(c.getName()));
+				cls.define(bases, fields, c.getDescription());
 			} else if (type instanceof Tml.Types.Enum) {
+				// define enum with entries and description.
 				Tml.Types.Enum e = (Tml.Types.Enum) type;
+				String id = Enum.nameToId(e.getName());
 				Enum enm = (Enum) schema.findType(Enum.nameToId(e.getName()));
 
 				List<EnumEntry> entries = new ArrayList<EnumEntry>();
 				for (Tml.Types.Enum.Entry tmlEntry : e.getEntry()) {
-					entries.add(new EnumEntry(tmlEntry.getName(), tmlEntry
-							.getValue(), tmlEntry.getDescription()));
+					entries.add(new EnumEntry(tmlEntry.getName(), tmlEntry.getValue(), tmlEntry.getDescription()));
 				}
 
-				enm.setEntries(entries);
-			}
-		}
-
-		// check if there are undefined user types
-		for (Type type : schema.getTypes()) {
-			String id = type.getTypeId();
-			if (type.isUserType() && !userTypeIdSet.contains(id)) {
-				throw new TeslaSchemaException(String.format(
-						"Undefined user type '%s'", type.getTypeId()));
+				enm.define(entries, e.getDescription());
 			}
 		}
 
 		schema.setVersion(ver);
+		schema.validate();
 		return schema;
 
 	}
@@ -567,13 +560,14 @@ class TmlNode {
 		return tml;
 	}
 
-	public void acceptVisitor(TmlVisitor visitor) throws Exception {
+	public void acceptVisitor(TmlVisitor visitor) throws TeslaSchemaException,
+			IOException {
 		visitor.visit(this);
 	}
 }
 
 interface TmlVisitor {
-	void visit(TmlNode tml) throws Exception;
+	void visit(TmlNode tml) throws TeslaSchemaException, IOException;
 }
 
 class TmlGraph {
@@ -589,11 +583,11 @@ class TmlGraph {
 		}
 	}
 
-	public TmlGraph(File file) throws Exception {
+	public TmlGraph(File file) throws TeslaSchemaException, IOException {
 		build(file);
 	}
 
-	private TmlNode build(File file) throws Exception {
+	private TmlNode build(File file) throws TeslaSchemaException, IOException {
 		if (hasVertex(file)) {
 			return findVertex(file);
 		}
@@ -640,7 +634,8 @@ class TmlGraph {
 		return imported;
 	}
 
-	private static TmlNode readTml(File file) throws Exception {
+	private static TmlNode readTml(File file) throws TeslaSchemaException,
+			IOException {
 		validateTml(file);
 		Tml tml = unmarshallTml(file);
 		SchemaVersion version = new SchemaVersion(0L, tml.getVersion()
@@ -650,48 +645,37 @@ class TmlGraph {
 		return new TmlNode(file, version, tml);
 	}
 
-	private static void validateTml(File file) throws Exception {
+	private static void validateTml(File file) throws TeslaSchemaException,
+			IOException {
 		URL schemaFile = TmlGraph.class.getClassLoader().getResource(
 				"tml-v2.xsd");
 		Source xmlFile = new StreamSource(file);
-		Validator validator = SchemaFactory
-				.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
-				.newSchema(schemaFile).newValidator();
 		try {
+			Validator validator = SchemaFactory
+					.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
+					.newSchema(schemaFile).newValidator();
 			validator.validate(xmlFile);
-		} catch (SAXParseException ex) {
+		} catch (SAXException ex) {
 			throw new TeslaSchemaException("Invalid TML: "
 					+ file.getCanonicalPath(), ex);
 		}
 	}
 
-	public static Tml unmarshallTml(File file) throws JAXBException {
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		return (Tml) unmarshaller.unmarshal(file);
+	public static Tml unmarshallTml(File file) throws TeslaSchemaException,
+			IOException {
+		Unmarshaller unmarshaller;
+		try {
+			unmarshaller = jaxbContext.createUnmarshaller();
+			return (Tml) unmarshaller.unmarshal(file);
+		} catch (JAXBException ex) {
+			throw new TeslaSchemaException("Failed to unmarshall TML file "
+					+ file.toString(), ex);
+		}
 	}
 
 	public static void marshallTml(Tml tml, OutputStream os)
 			throws IOException, JAXBException {
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		marshaller.marshal(tml, os);
-	}
-
-	private static long getSchemaHash(String filename)
-			throws NoSuchAlgorithmException, IOException {
-		return getSchemaHash(new FileInputStream(filename));
-	}
-
-	private static long getSchemaHash(InputStream is)
-			throws NoSuchAlgorithmException, IOException {
-		MessageDigest md = MessageDigest.getInstance("SHA1");
-		try {
-			DigestInputStream dis = new DigestInputStream(is, md);
-			while (dis.read() != -1)
-				;
-			byte[] digest = md.digest();
-			return (new BigInteger(digest)).longValue();
-		} finally {
-			is.close();
-		}
 	}
 }
