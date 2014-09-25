@@ -8,9 +8,9 @@
 
 package com.expedia.tesla.serialization;
 
-import com.expedia.tesla.TeslaException;
+import java.io.IOException;
 
-public class TeslaSerializationException extends TeslaException {
+public class TeslaSerializationException extends IOException {
 	private static final long serialVersionUID = 1602837571431292189L;
 
 	public TeslaSerializationException(String message) {
