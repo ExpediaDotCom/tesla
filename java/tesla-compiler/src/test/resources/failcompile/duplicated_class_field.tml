@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="duplicated class field test v1.0" number="1"/>
+  <namespace name="com.expedia.tesla.compiler.test.failcompile.full.duplicatedclassfield" />
+  <types>
+    <class name="TestClass" >
+      <entry name="Field1" type="int32" />
+      <entry name="Field1" value="int64" />
+    </class>
+  </types> 
+</schema>

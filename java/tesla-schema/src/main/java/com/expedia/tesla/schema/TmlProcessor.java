@@ -43,20 +43,8 @@ import javax.xml.validation.Validator;
 
 import org.xml.sax.SAXException;
 
-import com.expedia.tesla.schema.Class;
-import com.expedia.tesla.schema.Enum;
-import com.expedia.tesla.schema.EnumEntry;
-import com.expedia.tesla.schema.Field;
-import com.expedia.tesla.schema.Primitive;
-import com.expedia.tesla.schema.Schema;
 import com.expedia.tesla.SchemaVersion;
-import com.expedia.tesla.schema.TeslaSchemaException;
-import com.expedia.tesla.schema.Type;
 import com.expedia.tesla.schema.tml.v2.Tml;
-import com.expedia.tesla.schema.tml.v2.Tml.Import;
-import com.expedia.tesla.schema.tml.v2.Tml.Types;
-import com.expedia.tesla.schema.tml.v2.Tml.Version;
-import com.expedia.tesla.schema.tml.v2.Tml.Types.Enum.Entry;
 
 /**
  * TML file is an user friendly Tesla schema file format. It will be
@@ -464,35 +452,33 @@ abstract class TmlProcessor {
 						: ver.getNumber().shortValue(), ver.getName(), path));
 	}
 
-	public static com.expedia.tesla.schema.Schema build(List<Object> types,
-			SchemaVersion ver) throws TeslaSchemaException {
-		com.expedia.tesla.schema.Schema.SchemaBuilder schema = new com.expedia.tesla.schema.Schema.SchemaBuilder();
+	public static Schema build(List<Object> types, SchemaVersion ver) throws TeslaSchemaException {
+		Schema.SchemaBuilder schemaBuilder = new Schema.SchemaBuilder();
 
 		for (Object type : types) {
 			// build classes, without fields.
 			if (type instanceof Tml.Types.Class) {
 				Tml.Types.Class c = (Tml.Types.Class) type;
 				String id = Class.nameToId(c.getName());
-				Class clss = (Class) schema.addType(id);
+				schemaBuilder.addType(id);
 				
 			} else if (type instanceof Tml.Types.Enum) {
 				// build enums, without entries.
 				Tml.Types.Enum e = (Tml.Types.Enum) type;
 				String id = Enum.nameToId(e.getName());
-				Enum enm = (Enum) schema.addType(id);
+				schemaBuilder.addType(id);
 			}
 		}
 
 		for (Object type : types) {
 			if (type instanceof Tml.Types.Class) {
 				Tml.Types.Class c = (Tml.Types.Class) type;
-				String id = Class.nameToId(c.getName());
 				
 				// define class with base classes, fields and description.
 				List<Class> bases = new ArrayList<Class>();
 				if (c.getExtends() != null && !c.getExtends().isEmpty()) {
 					for (String b : c.getExtends().split(",")) {
-						Class base = (Class) schema.addType(b);
+						Class base = (Class) schemaBuilder.addType(b);
 						bases.add(base);
 					}
 				}
@@ -502,7 +488,7 @@ abstract class TmlProcessor {
 					Field field = new Field();
 					field.setName(f.getName());
 					field.setDisplayName(f.getDisplayname());
-					field.setType(schema.addType(f.getType()));
+					field.setType(schemaBuilder.addType(f.getType()));
 					field.setDescription(f.getDescription());
 					Map<String, String> attributes = new TreeMap<String, String>();
 					for (Map.Entry<QName, String> attr : f.getOtherAttributes().entrySet()) {
@@ -513,13 +499,12 @@ abstract class TmlProcessor {
 					fields.add(field);
 				}
 				
-				Class cls = (Class) schema.findType(Class.nameToId(c.getName()));
+				Class cls = (Class) schemaBuilder.findType(Class.nameToId(c.getName()));
 				cls.define(bases, fields, c.getDescription());
 			} else if (type instanceof Tml.Types.Enum) {
 				// define enum with entries and description.
 				Tml.Types.Enum e = (Tml.Types.Enum) type;
-				String id = Enum.nameToId(e.getName());
-				Enum enm = (Enum) schema.findType(Enum.nameToId(e.getName()));
+				Enum enm = (Enum) schemaBuilder.findType(Enum.nameToId(e.getName()));
 
 				List<EnumEntry> entries = new ArrayList<EnumEntry>();
 				for (Tml.Types.Enum.Entry tmlEntry : e.getEntry()) {
@@ -530,9 +515,9 @@ abstract class TmlProcessor {
 			}
 		}
 
-		schema.setVersion(ver);
-		schema.validate();
-		return schema;
+		schemaBuilder.setVersion(ver);
+		schemaBuilder.validate();
+		return schemaBuilder;
 
 	}
 }

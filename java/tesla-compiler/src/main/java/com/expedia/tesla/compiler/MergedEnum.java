@@ -12,10 +12,10 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.Enum;
 import com.expedia.tesla.schema.EnumEntry;
 import com.expedia.tesla.schema.Schema;
-import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.TeslaSchemaException;
 import com.expedia.tesla.schema.Type;
 

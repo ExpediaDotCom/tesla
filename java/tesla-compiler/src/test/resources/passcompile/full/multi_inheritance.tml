@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="compiler test passcompile full inheritance v1.0" number="1"/>
+  <namespace name="com.expedia.tesla.compiler.test.passcompile.full.inheritance" />
+  <types>
+    <class name="Base1" >
+      <field name="Int32Field" type="int32"/>
+    </class>
+    <class name="Base2">
+      <field name="Int16Field" type="int16"/>
+    </class>
+	<class name="SingleDerived" extends="Base1">
+	  <field name="BooleanField" type="boolean" />
+    </class>
+    <class name="MultiDerived" extends="Base1,Base2">
+	  <field name="ByteField" type="byte" />
+    </class>
+  </types> 
+</schema>

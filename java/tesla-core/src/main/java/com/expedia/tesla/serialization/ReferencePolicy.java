@@ -37,7 +37,7 @@ public class ReferencePolicy {
 	 * 
 	 * @throws TeslaSerializationException
 	 */
-	public <T> int getOutputReferenceId(T value, Class<T> clzz) {
+	public <T> int getOutputReferenceId(T value, Class<?> clzz) {
 		@SuppressWarnings("unchecked")
 		java.util.Map<T, Integer> e = (java.util.Map<T, Integer>) refWriteTable
 				.get(clzz);
@@ -68,7 +68,7 @@ public class ReferencePolicy {
 	 *             If no such previously deserialized object.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getInputReference(int id, java.lang.Class<T> clzz)
+	public <T> T getInputReference(int id, java.lang.Class<?> clzz)
 			throws TeslaDeserializationException {
 		java.util.Map<Integer, ?> ids = refReadTable.get(clzz);
 		T value = null;

@@ -157,9 +157,9 @@
 #elseif( $type.Name == "double" )
         return reader.readDouble(name);
 #elseif( $type.Name == "string" )
-        return reader.readString(name, false);
+        return reader.readString(name);
 #elseif( $type.Name == "binary" )
-        return reader.readBinary(name, false);
+        return reader.readBinary(name);
 #else
         wrong!
 #end  

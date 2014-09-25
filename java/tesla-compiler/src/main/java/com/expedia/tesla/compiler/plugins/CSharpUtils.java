@@ -6,21 +6,22 @@
  * EXPEDIA PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-package com.expedia.tesla.compiler;
+package com.expedia.tesla.compiler.plugins;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import com.expedia.tesla.compiler.Util;
+import com.expedia.tesla.schema.Array;
 import com.expedia.tesla.schema.Enum;
 import com.expedia.tesla.schema.Field;
+import com.expedia.tesla.schema.Nullable;
 import com.expedia.tesla.schema.Primitive;
 import com.expedia.tesla.schema.Reference;
 import com.expedia.tesla.schema.Type;
 import com.expedia.tesla.schema.UserType;
-import com.expedia.tesla.schema.Array;
-import com.expedia.tesla.schema.Nullable;
 
 /**
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>

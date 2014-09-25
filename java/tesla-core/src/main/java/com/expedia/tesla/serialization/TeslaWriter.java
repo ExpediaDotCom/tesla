@@ -11,6 +11,7 @@ package com.expedia.tesla.serialization;
 import java.io.IOException;
 
 import com.expedia.tesla.SchemaVersion;
+import com.expedia.tesla.utils.Unsigned;
 
 /**
  * Encode basic type values.

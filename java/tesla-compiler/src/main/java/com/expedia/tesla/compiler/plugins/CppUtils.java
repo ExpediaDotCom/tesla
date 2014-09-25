@@ -6,13 +6,14 @@
  * EXPEDIA PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-package com.expedia.tesla.compiler;
+package com.expedia.tesla.compiler.plugins;
 
+import com.expedia.tesla.compiler.Util;
+import com.expedia.tesla.schema.Class;
+import com.expedia.tesla.schema.Enum;
 import com.expedia.tesla.schema.Field;
 import com.expedia.tesla.schema.Primitive;
 import com.expedia.tesla.schema.Type;
-import com.expedia.tesla.schema.Class;
-import com.expedia.tesla.schema.Enum;
 
 /**
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>

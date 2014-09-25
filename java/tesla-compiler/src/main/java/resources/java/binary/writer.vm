@@ -87,8 +87,8 @@
             break;
 #end
         default:
-            throw new java.io.IOException(String.format(
-                "Enum value %s is not allowed field %s (type id '$type.TypeId')", 
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
+                "Enum value %s is not allowed on field %s (type id '$type.TypeId')", 
                 v.toString(), name));
         }
     }
@@ -105,7 +105,7 @@
 #set($tid = $tid + 1)
 #end
         } else {
-            throw new java.io.IOException(String.format(
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
                 "Illegal type %s for field %s (type id '$type.TypeId')", 
                 v.getClass().toString(), name));
         }
@@ -117,10 +117,8 @@
 #set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
     public void write${td.Symbol}(java.lang.String name, $td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
         int id = refPolicy.getOutputReferenceId(v, ${clzzName}.class);
-        if (id > 0) {
-            write_int32(null, id);
-        } else {
-            write_int32(null, -id);
+        write_int32(null, id);
+        if (id < 0) {
             write${etd.Symbol}(name, ($mapper.box(${etd.InterfaceName}))v);
         }
     }
@@ -149,9 +147,9 @@
 #elseif( $type.Name == "double" )
         writer.writeDouble(name, v);
 #elseif( $type.Name == "string" )
-        writer.writeString(name, v, false);
+        writer.writeString(name, v);
 #elseif( $type.Name == "binary" )
-        writer.writeBinary(name, v, false);
+        writer.writeBinary(name, v);
 #else
         wrong!
 #end       

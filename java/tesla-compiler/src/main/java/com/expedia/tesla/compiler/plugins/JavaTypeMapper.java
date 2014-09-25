@@ -18,17 +18,18 @@ import com.expedia.tesla.schema.Field;
 import com.expedia.tesla.schema.Map;
 import com.expedia.tesla.schema.Nullable;
 import com.expedia.tesla.schema.Primitive;
+import com.expedia.tesla.schema.Reference;
 import com.expedia.tesla.schema.Schema;
 import com.expedia.tesla.schema.TeslaSchemaException;
-import com.expedia.tesla.schema.Reference;
 import com.expedia.tesla.schema.Type;
 import com.expedia.tesla.schema.UserType;
 
 public class JavaTypeMapper {
-
+	
 	private static final java.util.Map<Primitive, JavaTypeDescriptor> PRIM_DESCRIPTORS = new java.util.HashMap<Primitive, JavaTypeDescriptor>();
 	private static final java.util.Map<String, java.lang.Class<?>> BOXES = new java.util.TreeMap<String, java.lang.Class<?>>();
 	private static final java.util.Map<String, Primitive> PRIM_INDEX = new java.util.TreeMap<String, Primitive>();
+	private boolean mapToJavaArray = false;
 
 	private static class Pmap {
 		Pmap(Primitive primtive, java.lang.Class<?> unboxed,
@@ -72,6 +73,39 @@ public class JavaTypeMapper {
 		}
 	}
 
+	/**
+	 * Determines if Tesla arrays are mapped to Java arrays. If this is {@code true}, Tesla arrays without detailed 
+	 * container type information will be mapped to java arrays. Otherwise, they will be mapped to {@code ArrayList}.
+	 * 
+     * @return  {@code true} if map to Java array;
+     *          {@code false} otherwise.
+	 */
+	public boolean isMapToJavaArray() {
+		return mapToJavaArray;
+	}
+
+	/**
+	 * Configures the default Tesla array mapping when an array type specified without detailed container type 
+	 * information. 
+	 * <p>
+	 * Set to {@code true} will map arrays to Java arrays. Otherwise, they will be mapped to {@code ArrayList}.
+	 * 
+	 * @param mapToJavaArray if map to Java array;
+	 */
+	public void setMapToJavaArray(boolean mapToJavaArray) {
+		this.mapToJavaArray = mapToJavaArray;
+	}
+
+	/**
+	 * Obtains Java type descriptor which describes type mapping information for a given Tesla type.
+	 *  
+	 * @param t
+	 * 		The Tesla type.
+	 * @return
+	 * 		A {@code JavaTypeDescriptor} object that describes the mapped Java types.
+	 * @throws TeslaSchemaException
+	 * 		On a mapping error.
+	 */
 	public JavaTypeDescriptor getTypeDescriptor(Type t)
 			throws TeslaSchemaException {
 
@@ -97,13 +131,18 @@ public class JavaTypeMapper {
 			Array a = (Array) t;
 			Type e = a.getElementType();
 			JavaTypeDescriptor etd = getTypeDescriptor(e);
+			
+			String containerInfo = a.getExtraTypeId();
+			if (!mapToJavaArray) {
+				containerInfo = "java.util.List,java.util.ArrayList";
+			}
 
-			if (a.getExtraTypeId() == null || a.getExtraTypeId().isEmpty()) {
+			if (containerInfo == null || containerInfo.isEmpty()) {
 				return new JavaTypeDescriptor(t, symbol(t),
 						etd.getInterfaceName() + "[]", etd.getInterfaceName()
 								+ "[]");
 			} else {
-				String tokens[] = a.getExtraTypeId().split(",");
+				String tokens[] = containerInfo.split(",");
 				String interfaceName = null;
 				String actualTypeName = null;
 				if (tokens.length == 1) {
@@ -178,10 +217,27 @@ public class JavaTypeMapper {
 		throw new AssertionError(String.format("unkonw type '%s'", t));
 	}
 
+	/**
+	 * Create an unique symbol for a Tesla type that can be used in the generated source code.
+	 * 
+	 * @param t
+	 * 		The Tesla type.
+	 * @return
+	 * 		An unique symbol for a Tesla type that can be used in the generated source code.
+	 */
 	public String symbol(Type t) {
 		return "_" + t.getTypeId().replaceAll("\\.|<|>|,|\\[|\\]", "_");
 	}
 
+	/**
+	 * Get the boxed type name. If the input type name does't represent a Java primitive type, the returned value will
+	 * be the same as input.
+	 * 
+	 * @param t
+	 * 		Java type name.
+	 * @return
+	 * 		The boxed Java type name if the input is a Java primitive type. Otherwise, it returns the same name as input.
+	 */
 	public String box(String t) {
 		if (BOXES.containsKey(t))
 			return BOXES.get(t).getCanonicalName();

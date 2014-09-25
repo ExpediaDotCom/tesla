@@ -87,8 +87,8 @@
             break;
 #end
         default:
-            throw new java.io.IOException(String.format(
-                "Enum value %s is not allowed field %s (type id '$type.TypeId')", 
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
+                "Enum value %s is not allowed on field %s (type id '$type.TypeId')", 
                 v.toString(), name));
         }
     }
@@ -103,7 +103,7 @@
 #set($tid = $tid + 1)
 #end
         } else {
-            throw new java.io.IOException(String.format(
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
                 "Illegal type %s for field %s (type id '$type.TypeId')", 
                 v.getClass().toString(), name));
         }
@@ -116,8 +116,10 @@
         jsonGenerator.writeStartObject();
         int id = refPolicy.getOutputReferenceId(v, ${clzzName}.class);
         if (id > 0) {
+            jsonGenerator.writeFieldName("@reference"); 
             write_int32("@reference", id);
         } else {
+            jsonGenerator.writeFieldName("@id"); 
             write_int32("@id", -id);
             jsonGenerator.writeFieldName("@value"); 
             write${etd.Symbol}(name, ($mapper.box(${etd.InterfaceName}))v);

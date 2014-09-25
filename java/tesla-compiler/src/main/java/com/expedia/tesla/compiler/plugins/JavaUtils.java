@@ -6,11 +6,11 @@
  * EXPEDIA PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
 
-package com.expedia.tesla.compiler;
+package com.expedia.tesla.compiler.plugins;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
-import com.expedia.tesla.compiler.plugins.JavaTypeMapper;
+import com.expedia.tesla.compiler.Util;
 import com.expedia.tesla.schema.Enum;
 import com.expedia.tesla.schema.Field;
 import com.expedia.tesla.schema.Primitive;
@@ -20,7 +20,6 @@ import com.expedia.tesla.schema.TeslaSchemaException;
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>
  * 
  */
-@Deprecated
 public class JavaUtils extends Util {
 	JavaTypeMapper typeMapper = new JavaTypeMapper();
 
