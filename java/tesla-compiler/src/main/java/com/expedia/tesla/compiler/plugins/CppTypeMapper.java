@@ -6,6 +6,7 @@ package com.expedia.tesla.compiler.plugins;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.expedia.tesla.compiler.Util;
 import com.expedia.tesla.schema.Array;
 import com.expedia.tesla.schema.Map;
 import com.expedia.tesla.schema.Nullable;

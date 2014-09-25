@@ -127,7 +127,7 @@
 #set($tid = $tid + 1)
 #end
         } else {
-            throw new java.io.IOException(String.format(
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
                 "Illegal type %s for (type id '$type.TypeId')", 
                 newValue.getClass().toString()));
         }

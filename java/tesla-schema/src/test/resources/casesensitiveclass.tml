@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="example v1.0"/>
+  <namespace name="com.expedia.tesla.automation.component.schema" />
+  <types>
+    <class name="TeslaClass" >
+    </class>
+    <class name="teslaclass" >
+    </class>
+  </types> 
+</schema>

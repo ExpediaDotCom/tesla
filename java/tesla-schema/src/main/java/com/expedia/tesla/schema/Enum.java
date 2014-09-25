@@ -12,24 +12,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Enum extends UserType {
-	private List<EnumEntry> entries = new ArrayList<EnumEntry>();
+	protected List<EnumEntry> entries = new ArrayList<EnumEntry>();
 
 	public Enum() {
 	}
 
-	public Enum(String name, String description, List<EnumEntry> entries) {
-		setName(name);
-		setDescription(description);
-		setEntries(entries);
+	public Enum(String name, List<EnumEntry> entries, String description) {
+		super(name, null);
+		define(entries, description);
 	}
 
 	public java.util.List<com.expedia.tesla.schema.EnumEntry> getEntries() {
 		return this.entries;
 	}
 
-	public void setEntries(
-			java.util.List<com.expedia.tesla.schema.EnumEntry> value) {
+	protected void setEntries(java.util.List<com.expedia.tesla.schema.EnumEntry> value) {
 		this.entries = value;
+	}
+	
+	public void define(List<EnumEntry> entries, String description) {
+		setDescription(description);
+		setEntries(entries);
+		define();
 	}
 
 	@Override
@@ -57,14 +61,5 @@ public class Enum extends UserType {
 			throw new TeslaSchemaException(String.format(
 					"Invalid enum id '%s'", id));
 		}
-	}
-
-	public void addValue(String name, int value, String description)
-			throws TeslaSchemaException {
-		if (hasValue(name)) {
-			throw new TeslaSchemaException(String.format(
-					"Enum value'%s' already exists in '%s'", name, getName()));
-		}
-		getEntries().add(new EnumEntry(name, value, description));
 	}
 }

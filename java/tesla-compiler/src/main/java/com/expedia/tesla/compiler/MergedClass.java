@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.Array;
 import com.expedia.tesla.schema.Class;
 import com.expedia.tesla.schema.Field;
@@ -24,7 +25,6 @@ import com.expedia.tesla.schema.Nullable;
 import com.expedia.tesla.schema.Poly;
 import com.expedia.tesla.schema.Reference;
 import com.expedia.tesla.schema.Schema;
-import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.TeslaSchemaException;
 import com.expedia.tesla.schema.Type;
 

@@ -14,23 +14,24 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 
-import com.expedia.tesla.ISchemaVersion;
 import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.utils.BitConverter;
 import com.expedia.tesla.utils.LockFreeMemoryInputStream;
 import com.expedia.tesla.utils.Unsigned;
 
 /**
- * The Class BinaryReader.
+ * Read basic Tesla binary encoded values defined in Tesla binary encoding
+ * specification.
  * 
- * @see com.com.expedia.tesla.serialization.ITeslaReader
+ * @author Yunfei Zuo (yzuo@expedia.com)
  */
-public class BinaryReader implements Closeable {
+public class BinaryReader implements TeslaReader, Closeable {
+
 	protected static final Charset UTF8 = Charset.forName("UTF-8");
 
 	protected static final String CORRUPT_STREAM = "Invalid data was encountered in the stream. The stream is corrupted.";
 
-	private ISchemaVersion version;
+	private SchemaVersion version;
 	private InputStream in;
 	private byte[] byteBuffer = new byte[8];
 	private int bytes;
@@ -55,7 +56,7 @@ public class BinaryReader implements Closeable {
 	 * @param version
 	 *            the schema version
 	 */
-	public BinaryReader(byte[] buffer, ISchemaVersion version) {
+	public BinaryReader(byte[] buffer, SchemaVersion version) {
 		this(buffer, 0, buffer.length, version);
 	}
 
@@ -88,7 +89,7 @@ public class BinaryReader implements Closeable {
 	 *            the schema version
 	 */
 	public BinaryReader(byte[] buffer, int offset, int length,
-			ISchemaVersion version) {
+			SchemaVersion version) {
 		this(new LockFreeMemoryInputStream(buffer, offset, length), version);
 	}
 
@@ -97,11 +98,10 @@ public class BinaryReader implements Closeable {
 	 * 
 	 * @param in
 	 *            The input stream.
-	 * 
 	 * @param version
 	 *            The schema version.
 	 */
-	public BinaryReader(InputStream in, ISchemaVersion version) {
+	public BinaryReader(InputStream in, SchemaVersion version) {
 		this.version = version;
 		this.in = in;
 	}
@@ -111,7 +111,6 @@ public class BinaryReader implements Closeable {
 	 * 
 	 * @param in
 	 *            The input stream.
-	 * 
 	 * @param schemaHash
 	 *            The schema hash.
 	 */
@@ -120,23 +119,38 @@ public class BinaryReader implements Closeable {
 	}
 
 	/**
+	 * Get current Tesla schema version.
+	 * 
 	 * @return the version
 	 */
-	public ISchemaVersion getVersion() {
+	public SchemaVersion getVersion() {
 		return version;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void close() throws IOException {
 		in.close();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code boolean} value.
+	 * <p>
+	 * In order to make it easier to detect corrupted data, the boolean value
+	 * TRUE is encoded in one byte 0x0D and FALSE is encoded in 0x05.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readBoolean(java.lang.String
-	 * )
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public boolean readBoolean(String name) throws IOException,
 			TeslaDeserializationException {
@@ -152,22 +166,38 @@ public class BinaryReader implements Closeable {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code byte} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readByte(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public byte readByte(String name) throws IOException,
 			TeslaDeserializationException {
 		return readByte();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code int16} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readInt16(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public short readInt16(String name) throws IOException,
 			TeslaDeserializationException {
@@ -178,11 +208,19 @@ public class BinaryReader implements Closeable {
 		return (short) value;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code int32} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readInt32(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public int readInt32(String name) throws IOException,
 			TeslaDeserializationException {
@@ -193,22 +231,44 @@ public class BinaryReader implements Closeable {
 		return (int) value;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code int64} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readInt64(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public long readInt64(String name) throws IOException,
 			TeslaDeserializationException {
 		return this.readZigZag();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code uint16} value.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readUInt16(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public short readUInt16(String name) throws IOException,
 			TeslaDeserializationException {
@@ -219,11 +279,25 @@ public class BinaryReader implements Closeable {
 		return (short) value;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code uint32} value.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readUInt32(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public int readUInt32(String name) throws IOException,
 			TeslaDeserializationException {
@@ -234,11 +308,25 @@ public class BinaryReader implements Closeable {
 		return (int) value;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code uint64} value.
+	 * <p>
+	 * <b>Note:</b> Java has no unsigned integers. Unsigned integers are
+	 * represented using their signed counterparts, with the sign bit of the
+	 * sign integer being used to store highest bit. Tesla provides a helper
+	 * class {@link Unsigned} that promotes the returned signed integer values
+	 * to wider integer types.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readUInt64(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public long readUInt64(String name) throws IOException,
 			TeslaDeserializationException {
@@ -247,11 +335,19 @@ public class BinaryReader implements Closeable {
 		return value.longValue();
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code float} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readFloat(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public float readFloat(String name) throws IOException,
 			TeslaDeserializationException {
@@ -259,11 +355,19 @@ public class BinaryReader implements Closeable {
 		return BitConverter.toFloat(byteBuffer, 0);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code double} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readDouble(java.lang.String)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public double readDouble(String name) throws IOException,
 			TeslaDeserializationException {
@@ -271,36 +375,47 @@ public class BinaryReader implements Closeable {
 		return BitConverter.toDouble(byteBuffer, 0);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code binary} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readBinary(java.lang.String,
-	 * boolean)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
-	public byte[] readBinary(String name, boolean nullable)
-			throws TeslaDeserializationException, IOException {
-		return this.readBinaryInternal(name, nullable, true);
+	public byte[] readBinary(String name) throws TeslaDeserializationException,
+			IOException {
+		return this.readBinaryInternal(name, true);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code string} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readString(java.lang.String,
-	 * boolean)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
-	public String readString(String name, boolean nullable)
+	public String readString(String name)
 			throws TeslaDeserializationException, IOException {
-		final byte[] buffer = this.readBinaryInternal(name, nullable, false);
+		final byte[] buffer = this.readBinaryInternal(name, false);
 		return buffer == null ? null : new String(buffer, 0, bytes, UTF8);
 	}
 
-	private byte[] readBinaryInternal(String name, boolean nullable,
-			boolean newBuffer) throws TeslaDeserializationException,
-			IOException {
-		if (nullable && this.readBoolean(null))
-			return null;
+	private byte[] readBinaryInternal(String name, boolean newBuffer)
+			throws TeslaDeserializationException, IOException {
 		long size = this.readVInt();
 		if (size < 0 || Integer.MAX_VALUE < size) {
 			throw new TeslaDeserializationException(CORRUPT_STREAM);
@@ -378,12 +493,19 @@ public class BinaryReader implements Closeable {
 		return (n >>> 1) ^ -(n & 1);
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Read a Tesla binary encoded {@code enum} value.
 	 * 
-	 * @see
-	 * com.expedia.tesla.serialization.ITeslaReader#readEnum(java.lang.String,
-	 * com.expedia.tesla.serialization.EnumMapper)
+	 * @param name
+	 *            The name of current value.
+	 * 
+	 * @return The decoded value.
+	 * 
+	 * @exception IOException
+	 *                On input error.
+	 * @exception TeslaDeserializationException
+	 *                When the data can't be decoded to current value type, or
+	 *                the end of stream/buffer is reached.
 	 */
 	public <T extends Enum<T>> T readEnum(String name, EnumMapper<T> mapper)
 			throws TeslaDeserializationException, IOException {

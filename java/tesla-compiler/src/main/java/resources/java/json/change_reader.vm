@@ -115,7 +115,7 @@
         }
 #end
         throw new java.io.IOException(String.format(
-            "Invalid Enum value '%d' encountered when reading type id '$type.TypeId'", 
+            "Invalid Enum value '%s' encountered when reading type id '$type.TypeId'", 
             value));
     }
 #end

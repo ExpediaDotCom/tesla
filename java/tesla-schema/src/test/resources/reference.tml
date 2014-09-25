@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="example v1.0" number="1"/>
+  <namespace name="com.expedia.tesla.automation.teslacompiler.reference" />
+  <types>
+    <class name="ReferencedType">
+      <field name="Version" type="string"/>
+      <field name="Name" type="string"/>
+    </class>
+    <class name="Message">
+      <field name="MessageHeader" type="ReferencedType" nullable="false" rank="1" reference="true"/>
+      <field name="Field1" type="ReferencedType" reference="true"/>
+      <field name="Field2" type="ReferencedType" reference="true"/>
+    </class>
+  </types> 
+</schema>

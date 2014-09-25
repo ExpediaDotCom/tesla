@@ -40,9 +40,9 @@
       <version>2.4</version>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.3</version>
     </dependency>
     <dependency>
       <groupId>org.mozilla</groupId>
@@ -64,6 +64,20 @@
       <artifactId>velocity</artifactId>
       <version>1.7</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.4.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.4.2</version>
+      <scope>test</scope>
+    </dependency>
+
+
 
 
     <dependency>
@@ -93,8 +107,126 @@
                   <directory>src/main/java/resources</directory>
                   <filtering>false</filtering>
                 </resource>
-              </resources>              
-            </configuration>            
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.3.2</version>
+        <executions>
+          <execution>
+            <id>generate-test-sources-java</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>${basedir}</workingDirectory>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>com.expedia.tesla.compiler.Compiler</argument>
+                <argument>-l</argument>
+                <argument>java</argument>
+                <argument>-o</argument>
+                <argument>${project.build.directory}/generated-test-sources/tesla/java</argument>
+                <argument>-s</argument>
+                <argument>com.expedia.tesla.compiler.test.Serializer</argument>
+                <argument>**/src/test/resources/passcompile/full/**.tml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-sources-cpp</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>${basedir}</workingDirectory>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>com.expedia.tesla.compiler.Compiler</argument>
+                <argument>-l</argument>
+                <argument>cpp</argument>
+                <argument>-o</argument>
+                <argument>${project.build.directory}/generated-test-sources/tesla/cpp</argument>
+                <argument>**/src/test/resources/passcompile/full/**.tml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-sources-csharp</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <workingDirectory>${basedir}</workingDirectory>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>com.expedia.tesla.compiler.Compiler</argument>
+                <argument>-l</argument>
+                <argument>csharp</argument>
+                <argument>-o</argument>
+                <argument>${project.build.directory}/generated-test-sources/tesla/csharp</argument>
+                <argument>**/src/test/resources/passcompile/full/**.tml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.3.2</version>
+        <executions>
+          <execution>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <workingDirectory>${basedir}</workingDirectory>
+          <executable>java</executable>
+          <arguments>
+            <argument>-classpath</argument>
+            <classpath />
+            <argument>com.expedia.tesla.compiler.Compiler</argument>
+            <argument>-l</argument>
+            <argument>java</argument>
+            <argument>-o</argument>
+            <argument>${project.build.directory}/generated-test-sources/tesla/java</argument>
+            <argument>**/src/test/resources/positive/full/**/*.tml</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.9.1</version>
+        <executions>
+          <execution>
+            <id>add-test-source</id>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-test-sources/tesla/java</source>
+              </sources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -111,7 +243,8 @@
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <outputFile>${project.build.directory}/${project.artifactId}-executable-${project.version}.jar</outputFile>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.expedia.tesla.compiler.Compiler</mainClass>
                 </transformer>
               </transformers>

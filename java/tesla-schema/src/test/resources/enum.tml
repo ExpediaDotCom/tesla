@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="example v1.0"/>
+  <namespace name="com.expedia.tesla.automation.component.schema" />
+  <types>
+    <enum name="TeslaEnum" >
+		<entry name="EnumEntry1" value="-1"/>
+		<entry name="EnumEntry2" value="0"/>
+		<entry name="EnumEntry3" value="1"/>
+    </enum>
+  </types> 
+</schema>

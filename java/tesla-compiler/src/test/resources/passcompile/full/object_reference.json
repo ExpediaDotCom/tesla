@@ -1,0 +1,4 @@
+{
+    "ObjectReferenceField1": {"@id": 1, "@value": { "IntField": 123 }},
+    "ObjectReferenceField2": {"@reference": 1}
+}

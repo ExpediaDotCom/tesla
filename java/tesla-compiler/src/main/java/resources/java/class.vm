@@ -61,7 +61,7 @@ public #if($isAbastract)abstract #{end}class ${thisShortName} #if($hasBase)exten
 
     @java.lang.Override
     public int hashCode() {
-        return new org.apache.commons.lang.builder.HashCodeBuilder(17, 37)
+        return new org.apache.commons.lang3.builder.HashCodeBuilder(17, 37)
 #foreach( $field in $allFields)
                 .append(this.$fieldName)
 #end
@@ -77,18 +77,11 @@ public #if($isAbastract)abstract #{end}class ${thisShortName} #if($hasBase)exten
         if (getClass() != obj.getClass())
             return false;
         $class.ShortName other = ($class.ShortName) obj;
+        return new org.apache.commons.lang3.builder.EqualsBuilder()
 #foreach( $field in $allFields)
-#if($field.Type.Class.simpleName.equals("Class") || $field.Type.Class.simpleName.equals("Enum") || $field.Type.Name == "String" || $field.IsArray)
-        if (!this.${fieldName}.equals(other.$fieldName))
-            return false;
-#elseif($field.Type.Name == "Binary")
-        if (!java.util.Arrays.equals(this.$fieldName, other.$fieldName))
-            return false;
-#else
-        if (this.$fieldName != other.$fieldName)
-            return false;
-#end#end
-        return true;
+                .append(this.$fieldName, other.$fieldName)
+#end
+                .isEquals();
     }
 
     

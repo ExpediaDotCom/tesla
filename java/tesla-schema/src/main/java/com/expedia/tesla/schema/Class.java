@@ -21,22 +21,19 @@ public class Class extends UserType {
 	private List<Field> fields = new ArrayList<Field>();
 	private List<Class> derivedTypes = new ArrayList<Class>();
 
-	public Class() {
+	Class() {
 	}
 
-	public Class(String name, List<Class> bases, List<Field> fields,
-			String description) {
+	Class(String name, List<Class> bases, List<Field> fields, String description) {
 		setName(name);
-		setDescription(description);
-		setBases(bases);
-		setFields(fields);
+		define(bases, fields, description);
 	}
 
 	public List<Class> getBases() {
 		return this.bases;
 	}
 
-	public void setBases(List<Class> value) {
+	void setBases(List<Class> value) {
 		this.bases = value;
 	}
 
@@ -44,11 +41,11 @@ public class Class extends UserType {
 		return this.fields;
 	}
 
-	public void setFields(List<Field> value) {
+	void setFields(List<Field> value) {
 		this.fields = value;
 	}
 
-	public Field addField(String name, String displayName, Type fieldType,
+	Field addField(String name, String displayName, Type fieldType,
 			java.util.Map<String, String> attributes, String descprition)
 			throws TeslaSchemaException {
 		if (getFields() == null) {
@@ -64,6 +61,13 @@ public class Class extends UserType {
 				descprition);
 		getFields().add(field);
 		return field;
+	}
+	
+	public void define(List<Class> bases, List<Field> fields, String description) {
+		setDescription(description);
+		setBases(bases);
+		setFields(fields);
+		define();
 	}
 
 	@Override
@@ -137,7 +141,6 @@ public class Class extends UserType {
 	}
 
 	public boolean isAbstract() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

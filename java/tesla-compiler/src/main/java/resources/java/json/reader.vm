@@ -113,7 +113,7 @@
         }
 #end
         throw new java.io.IOException(String.format(
-            "Invalid Enum value '%d' encountered when reading field %s (type id '$type.TypeId')", 
+            "Invalid Enum value '%s' encountered when reading field %s (type id '$type.TypeId')", 
             v, name));
     }
 #end
@@ -146,7 +146,7 @@
         } else if (node.has("@id")) {
             int id = read${int32_desc.Symbol}(name, node.findValue("@id"));
             ${etd.InterfaceName} v = read${etd.Symbol}(name, node.findValue("@value"));
-            refPolicy.putInputReference(-id, v, ${clzzName}.class);
+            refPolicy.putInputReference(id, v, ${clzzName}.class);
             return v;
         }
         throw new AssertionError("BUG, not a reference object!");
