@@ -102,6 +102,9 @@ public class BinaryReader implements TeslaReader, Closeable {
 	 *            The schema version.
 	 */
 	public BinaryReader(InputStream in, SchemaVersion version) {
+		if (in == null) {
+			throw new IllegalArgumentException("input stream cannot be null!");
+		}
 		this.version = version;
 		this.in = in;
 	}

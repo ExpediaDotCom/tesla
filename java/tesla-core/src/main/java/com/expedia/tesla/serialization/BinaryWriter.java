@@ -54,7 +54,7 @@ public class BinaryWriter implements TeslaWriter, Closeable, Flushable {
 	public BinaryWriter(OutputStream stream, SchemaVersion version) {
 		this.version = version;
 		if (stream == null) {
-			throw new IllegalArgumentException("stream");
+			throw new IllegalArgumentException("output stream cannot be null!");
 		}
 		this.stream = stream;
 	}
