@@ -3,6 +3,7 @@ Tesla Messaging Specification V2
 
 Goal 
 ------------------------------
+
 Tesla is a messaging framework that delivers application messages between applications. Following are goals of Tesla:
 
 - High performance
@@ -13,8 +14,6 @@ Tesla encode data efficiently for both speed and size. Unlike most other high pe
 
 Data Types
 ------------------------------
-
-
 
 ### Tesla Primitive Types
 
