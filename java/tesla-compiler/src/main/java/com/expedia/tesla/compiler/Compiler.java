@@ -43,41 +43,251 @@ import com.expedia.tesla.schema.TeslaSchemaException;
 public class Compiler {
 	
 	@Parameter(names={"-l", "--language"}, description="The output code language (Java, C# or C++).")
-	String language = "java";
+	private String language = "java";
 	
 	@Parameter(names={"-s", "--serializer"}, description="The full name the generated serializer class name " +
 			"(e.g. com.expedia.sample.AppSchema). Or C++ header file name without extension name.")
-	String appSchemaClassName = null;
+	private String appSchemaClassName = null;
 	
 	@Parameter(names={"-o", "--output-dir"}, description="The output directory. Output to current directory by default.")
-	String outputDir = System.getProperty("user.dir");
+	private String outputDir = System.getProperty("user.dir");
 	
 	@Parameter(names={"-c", "--class-template"}, description="User class source code template.")
-	String classTemplatePath;
+	private String classTemplatePath;
 	
 	@Parameter(names={"-m", "--enum-template"}, description="User enum source code template.")
-	String enumTemplatePath;
+	private String enumTemplatePath;
 	
 	@Parameter(names={"-v", "--serializer-template"}, description="User serializer source code template.")
-	String appSchemaTemplatePath;
+	private String appSchemaTemplatePath;
+	
+	@Parameter(names={"-nu", "--not-generate-user-types"}, description="Not generate source code for user types.")
+	private boolean notGenerateUserTypes;
 	
 	@Parameter(names={"-E", "--plugin"}, description="Create a plugin object of type <class_name> with " +
 			"<variable_name>. The plugin object will be available in template enginees, and can be refered by " +
 			"variable $variable_name.")
-	Map<String, String> extension = new HashMap<>();
+	private Map<String, String> extension = new HashMap<>();
 	
 	@Parameter(description="Tesla schema files (TMLs).", required=true)
-	List<String> schemaFiles = new ArrayList<>();
-	MergedSchema mergedSchema;
+	private List<String> schemaFiles = new ArrayList<>();
 	
 	@Parameter(names={"-cp", "-classpath"}, 
 			description = "Java classpath that compiler will search for user classes.")
-	String classpath;
+	private String classpath;
+	
+	/**
+	 * Constructor.
+	 */
+	public Compiler() {
+	}
 
-	private void compile() throws Exception {
+	/**
+	 * Get the name of programming language we are generation source code.
+	 * 
+	 * @return the name of programming language we are generation source code.
+	 */
+	public String getLanguage() {
+		return language;
+	}
+
+	/**
+	 * Get the full name the generated serializer class name.
+	 * 
+	 * @return the full name the generated serializer class name. 
+	 */
+	public String getAppSchemaClassName() {
+		return appSchemaClassName;
+	}
+
+	/**
+	 * Get the base output directory of the generated source code.
+	 *  
+	 * @return the base output directory of the generated source code.
+	 */
+	public String getOutputDir() {
+		return outputDir;
+	}
+
+	/**
+	 * Get the user class source code template.
+	 * 
+	 * @return the user class source code template.
+	 */
+	public String getClassTemplatePath() {
+		return classTemplatePath;
+	}
+
+	/**
+	 * Get the user enum source code template.
+	 * 
+	 * @return the user enum source code template.
+	 */
+	public String getEnumTemplatePath() {
+		return enumTemplatePath;
+	}
+
+	/**
+	 * Get the path of user serializer source code template.
+	 * 
+	 * @return the path of user serializer source code template.
+	 */
+	public String getAppSchemaTemplatePath() {
+		return appSchemaTemplatePath;
+	}
+
+	/**
+	 * Check if it is configured to not generate source code for user types.
+	 * 
+	 * @return ture if it is configured to not generate source code for user types. Otherwise, return false.
+	 */
+	public boolean isNotGenerateUserTypes() {
+		return notGenerateUserTypes;
+	}
+
+	/**
+	 * Get user extensions. The keys are extension names while the values are full class names of the extensions.
+	 *  
+	 * @return the user extensions.
+	 */
+	public Map<String, String> getExtension() {
+		return extension;
+	}
+
+	/**
+	 * Get the list of schema file paths.
+	 *
+	 * @return the paths of schema files.
+	 */
+	public List<String> getSchemaFiles() {
+		return schemaFiles;
+	}
+
+	/**
+	 * Get the classpath where compiler load Java classes for user extensions.
+	 * 
+	 * @return the Java the classpath where compiler load Java classes for user extensions.
+	 */
+	public String getClasspath() {
+		return classpath;
+	}
+
+	/**
+	 * Set the name of programming language we are generation source code
+	 * 
+	 * @param language the name of programming language we are generation source code
+	 */
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+	/**
+	 * Set the full name the generated serializer class name.
+	 * 
+	 * @param appSchemaClassName 
+	 * 		the full name the generated serializer class name.
+	 */
+	public void setAppSchemaClassName(String appSchemaClassName) {
+		this.appSchemaClassName = appSchemaClassName;
+	}
+
+	/**
+	 * Set the base output directory of the generated source code.
+	 * 
+	 * @param outputDir 
+	 * 		the base output directory of the generated source code.
+	 */
+	public void setOutputDir(String outputDir) {
+		this.outputDir = outputDir;
+	}
+
+	/**
+	 * Set the user class source code template.
+	 * 
+	 * @param classTemplatePath 
+	 * 		the user class source code template.
+	 */
+	public void setClassTemplatePath(String classTemplatePath) {
+		this.classTemplatePath = classTemplatePath;
+	}
+
+	/**
+	 * Set the user enum source code template.
+	 * 
+	 * @param enumTemplatePath 
+	 * 		the user enum source code template.
+	 */
+	public void setEnumTemplatePath(String enumTemplatePath) {
+		this.enumTemplatePath = enumTemplatePath;
+	}
+
+	/**
+	 * Set the path of user serializer source code template.
+	 * 
+	 * @param appSchemaTemplatePath 
+	 * 		the path of user serializer source code template.
+	 */
+	public void setAppSchemaTemplatePath(String appSchemaTemplatePath) {
+		this.appSchemaTemplatePath = appSchemaTemplatePath;
+	}
+
+	/**
+	 * Configure compiler to not generate source code for user types. 
+	 * <p>
+	 * This is {@code false} by default.
+	 * 
+	 * @param notGenerateUserTypes
+	 * 		set this to {@code true} for partial code generation which doesn't generate source code for user 
+	 * 		classes and enums. 
+	 */
+	public void setNotGenerateUserTypes(boolean notGenerateUserTypes) {
+		this.notGenerateUserTypes = notGenerateUserTypes;
+	}
+
+	/**
+	 * Set user extensions. 
+	 * <p>
+	 * The keys are extension names while the values are full class names of the extensions.
+	 * 
+	 * @param extension 
+	 * 		the extension to set
+	 */
+	public void setExtension(Map<String, String> extension) {
+		this.extension = extension;
+	}
+
+	/**
+	 * Set input schema file paths.
+	 * 
+	 * @param schemaFiles
+	 *  	the list of schema file paths.
+	 */
+	public void setSchemaFiles(List<String> schemaFiles) {
+		this.schemaFiles = schemaFiles;
+	}
+
+	/**
+	 * Set the classpath where compiler load Java classes for user extensions. 
+	 * <p>
+	 * Tesla compiler will search for user extensions from both system class path and class paths specified here.
+	 * 
+	 * @param classpath 
+	 * 		the Java classpath where compiler load Java classes for user extensions.
+	 */
+	public void setClasspath(String classpath) {
+		this.classpath = classpath;
+	}
+
+	/**
+	 * Merge Tesla schemas and generate source code use the current settings. 
+	 * @throws Exception
+	 */
+	public void compile() throws Exception {
 		MergedSchema ms = mergeSchemas(schemaFiles);
-		writeClasses(ms.getClasses());
-		writeEnums(ms.getEnumes());
+		if (!this.notGenerateUserTypes) {
+			writeClasses(ms.getClasses());
+			writeEnums(ms.getEnumes());
+		}
 		writeAppSchema(ms.getSchemas());
 	}
 

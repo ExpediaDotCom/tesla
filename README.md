@@ -8,23 +8,65 @@ software engineers from manually writing boiler-plate source
 code for object constructors, getters, setters, serialization, 
 change detections and notifications, versioning, etc. 
 
-Features
-=========
 
-- Customizable template based source code generation
-- High performance
-- Automatic strong versioning
-- Cross-language support
-- Supports object reference
-- Built in flyweight pattern support
-- Supports multiple dimensional array and map
-- Supports multiple inheritance and polymorphic objects
-- Flexible type mapping
-- Serialization with or without data transfer object (DTO)
-- Multiple serialization encodings
-- Object change detection and incremental updating
-- Support annotations and generate schema from existing source 
-code
+Features
+-----------------------------------------------------------------
+
+### High performance
+
+Tesla is super efficient because the generated code is compiled. Generally, it’s about tens to hundreds of times faster than its reflection based counterparts. Tesla serialization defines a binary encoding which is similar to Google’s Protobuf but without field id. This binary message format is about 30% less than Protobuf in size. 
+
+Tesla has builtin flyweight pattern support. It's object reference may dramatically reduce the size of serialized objects further if there are identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies in memory, or it was referred at multiple places in the same context. For example, if you have a list of 10 identical objects, Tesla will only encode the object once.
+
+### Automatic strong versioning
+
+Versioning and backwards compatibility of is very important in commercial applications. It is extremely easy to create backwards-compatible service in Tesla. Tesla defines each application schema version in its own schema file. You can change the application schemas without worrying about backwards compatibility very much when you are working on the next version of your service application. Tesla will resolve the schema difference and generate code that is compatible with all previous versions.
+ 
+### Cross-language support
+
+Tesla schema is language neutral. The same schema can be translated into source code of any object oriented programming languages by Tesla compiler. Tesla compiler currently has built-in templates that generate serialization and change detection code for C++, Java and C#, and we will keep adding more. It is easy to extend Tesla to a differernt language. For example, you can simply alter the Java templates to use JavaScript syntax to generate JavaScript source code, which is able to deserialize an object serialized by a C++ service in binary format.
+
+### Object reference and flyweight pattern
+
+Tesla object reference may reduce the size of serialized objects dramatically if you have many identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies or it was referred at multiple places in the same message context. For example, if you have an list of 10 identical objects, Tesla will only encode the object once.
+
+### Serialize objects with reference loop
+
+With Tesla reference, you can serialize an object graph with reference loops. If you have two objects A and B. A has a member that holds an reference to B, while B has a member holds a reference to A. Usually, we follow the references and serialize the whole object graph. However, this won't work if there is a reference loop inside the tree. Tesla can break the loop automatically by defining the reference properties as Tesla reference in the Tesla schema.
+
+### Serialization with or without data transfer object (DTO)
+
+Tesla was orignially build for a project that has hundreds of complicated objects. Most other binary protocols requrie us to use generated pure data transfer objects. We found that copying data between our business objects and generated data transfer objects is very expensive in a large scale service. We need to write a lot of code to copy data at development time. More importantly, the data copying between business objects and data transfer object wasted a lot of compute resources for a large scale service like ours.The goal of Tesla is make it easier to adopt for a real world application.
+
+Tesla can generate source code for classes and enums from schema. This is very useful when you start from scratch. However, when you already have some source code, or you don't like separate your data (properties) from behavior (methods), you can use partial code generation, which generates serialization code only.
+
+### Multiple serialization encodings
+
+Tesla compiler comes with built-in templates for generating objects that can be serialized in binary and JSON format. You can extend Tesla to serialize objects in other formats like XML or BSON. Tesla supports different encoding method by providing different source code templates.
+
+### Object change detection and incremental updating
+
+Tesla comes with Velocity templates that can be used to generate source code to calculate and encode object changes. The generated code recursively compares object properties, and only serialize the properties that are not the same. This makes it easy to push data changes incrementally.
+
+### Support annotations and generate schema from existing source code
+
+You can generate Tesla schema from existing Java classes and enums. You can deliver this schema to your service clients after your service is released. (We will add this feature to C# in the future).
+
+### Flexible type mapping
+
+Tesla allows you to choose concrete types used in your source code. For example, you can choose between ```ArrayList<Integer>``` and ```int[]``` in Java, or betweeen ```vector<int>``` and ```list<int>``` in C++. There are more advanced type mappings in C++ API which allows you to map any type to Tesla types. 
+
+### Customize generated source code 
+
+Tesla allows developers control the generated source code. For example, developers can insert Java annotations or .Net attributes in the generated classes or properties to support XML formatting. You can add performance logs into the serialization methods to mearsure the runtime performance. You can also add helper methods into generated classes to feed your needs. 
+
+### Multiple dimensional array
+
+Tesla has builtin support for multiple dimensional arrays. 
+
+### Multiple inheritance and polymorphic objects
+
+You can use inheritance in Tesla. A user object can extend another user object. Tesla even allows you to use multiple inheritance. However, the inheritance hierarchy may not retained as single inheritance in programming languages don't support multiple inheritance, for example, Java and C#. 
 
 Languages
 ----------
@@ -63,7 +105,7 @@ Tesla compiler will give a usage message.
 Create Hello World project with Maven project generator:
 
 ```
-mvn archetype:generate -DgroupId=com.mycompany.hello -DartifactId=hello -DarchetypeArtifactId=tesla-quickstart -DinteractiveMode=false
+mvn archetype:generate -DgroupId=com.mycompany.hello -DartifactId=hello -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 ```
 
 ### Create Schema
@@ -311,38 +353,10 @@ Greeting from Tesla server: Hello Tesla!
 
 See, we got the greeting.
 
-Tesla Schema
+Tesla Sepcification
 ------------
 
-A Tesla schema is a user object defintion version. Tesla schemas defined by Tesla Markup Language (TML), which itself is defined in XML. Developers
-
-Each schema can define a default global name space, all user defined types will be put into this global namespace if they are not defined with a full name. 
-User objects are defined as class nodes under ```/schema/types```. Each object definition must have a type name and optionally a description attribute. Object type name can be short name or full name. A full name is a dot separated names just like a C# or Java full class name. Objects are put into the global default namespace if short name is used.
-Each user object can has one or more fields. Each field has a name, a type attribute, and optionally displayName, rank, nullable, reference and description attributes. The field name must be unique inside the same object. It can be any predefined types or user defined types (object or enum). Array fields are defined by array ranks, it's zero by default, which is not array. A 1-D array is defined with rank = 1, a 2-D array is defined with rank = 2, etc. You can set nullable to true for types that support nullability ( String, Binary, Object and Array ). Object reference is defined by set reference attribute to true.
-Enums are defined as enum nodes under  /schema/types. Each enum definition must have a type name and optionally a description attribute. Enum type name can be short name or full name. A full name is a dot separated names just like a C# or Java full enum name. Objects are put into the global default namespace if short name is used. Each object must have one or more enum entries. Each enum entry has a name and a int32 value, and an optional description.
-All names can only use letters, digits or underscores, and must start with either letter or underscore (not digit). They are case sensitive except for Tesla predefined types (int32 is the same as Int32). 
-Each TML defines an application schema version. Tesla use the TML file hash as the schema version. However, this has is not easy to human. You can give an friendly name to your schema. You can name your schema by defining /schema/version node. It has a name and an optional number attribute.
-Following is an example TML a student information service. The request is a student id list and the service returns a list student of student information. If there is duplicated IDs in the request, the student list in the response may refer to the same object.
-
-Data Types
-----
-
-###Tesla Primitive Types
-
-Name | Description | Native C++ Type | Native C# Type | Native Java Type
------|-------------|-----------------|----------------|------------------
-Boolean | True or false value | bool | bool | boolean
-Byte | Single unsigned byte (8-bit) | uint8_t | Byte | byte
-Int16 | Signed 16-bit integer | int16_t | Int16 | short
-Int32 | Signed 32-bit integer | int32_t | Int32 | int
-Int64 | Signed 32-bit integer | int64_t | Int64 | long
-UInt16 | Unsigned 16-bit integer | uint16_t | UInt16 | int
-UInt32 | Unsigned 32-bit integer | uint32_t | UInt32 | long
-UInt64 | Unsigned 32-bit integer | uint64_t | UInt64 | long
-Float | IEEE Standard 754 Floating-Point (32-bits) | float | float | float
-Double | IEEE Standard 754 Floating-Point (64-bits) | double | double | double
-Binary | Sequence of bytes | std::vector<uint8_t> | Byte[] | byte[]
-String | String | std::string | String | String
+Please refere Tesla specification [here](specification.md).
 
 Support
 -------
