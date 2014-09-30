@@ -12,61 +12,61 @@ change detections and notifications, versioning, etc.
 Features
 -----------------------------------------------------------------
 
-### High performance
+1. High performance
 
-Tesla is super efficient because the generated code is compiled. Generally, it’s about tens to hundreds of times faster than its reflection based counterparts. Tesla serialization defines a binary encoding which is similar to Google’s Protobuf but without field id. This binary message format is about 30% less than Protobuf in size. 
+	Tesla is super efficient because the generated code is compiled. Generally, it’s about tens to hundreds of times faster than its reflection based counterparts. Tesla serialization defines a binary encoding which is similar to Google’s Protobuf but without field id. This binary message format is about 30% less than Protobuf in size. 
 
-Tesla has builtin flyweight pattern support. It's object reference may dramatically reduce the size of serialized objects further if there are identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies in memory, or it was referred at multiple places in the same context. For example, if you have a list of 10 identical objects, Tesla will only encode the object once.
+	Tesla has builtin flyweight pattern support. It's object reference may dramatically reduce the size of serialized objects further if there are identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies in memory, or it was referred at multiple places in the same context. For example, if you have a list of 10 identical objects, Tesla will only encode the object once.
 
-### Automatic strong versioning
+2. Automatic strong versioning
 
-Versioning and backwards compatibility of is very important in commercial applications. It is extremely easy to create backwards-compatible service in Tesla. Tesla defines each application schema version in its own schema file. You can change the application schemas without worrying about backwards compatibility very much when you are working on the next version of your service application. Tesla will resolve the schema difference and generate code that is compatible with all previous versions.
+	Versioning and backwards compatibility of is very important in commercial applications. It is extremely easy to create backwards-compatible service in Tesla. Tesla defines each application schema version in its own schema file. You can change the application schemas without worrying about backwards compatibility very much when you are working on the next version of your service application. Tesla will resolve the schema difference and generate code that is compatible with all previous versions.
  
-### Cross-language support
+3. Cross-language support
 
-Tesla schema is language neutral. The same schema can be translated into source code of any object oriented programming languages by Tesla compiler. Tesla compiler currently has built-in templates that generate serialization and change detection code for C++, Java and C#, and we will keep adding more. It is easy to extend Tesla to a differernt language. For example, you can simply alter the Java templates to use JavaScript syntax to generate JavaScript source code, which is able to deserialize an object serialized by a C++ service in binary format.
+	Tesla schema is language neutral. The same schema can be translated into source code of any object oriented programming languages by Tesla compiler. Tesla compiler currently has built-in templates that generate serialization and change detection code for C++, Java and C#, and we will keep adding more. It is easy to extend Tesla to a differernt language. For example, you can simply alter the Java templates to use JavaScript syntax to generate JavaScript source code, which is able to deserialize an object serialized by a C++ service in binary format.
 
-### Object reference and flyweight pattern
+4. Object reference and flyweight pattern
 
-Tesla object reference may reduce the size of serialized objects dramatically if you have many identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies or it was referred at multiple places in the same message context. For example, if you have an list of 10 identical objects, Tesla will only encode the object once.
+	Tesla object reference may reduce the size of serialized objects dramatically if you have many identical objects. Tesla will make sure there is only one copy of the serialized object data included in the encoded binary data, even if you have multiple copies or it was referred at multiple places in the same message context. For example, if you have an list of 10 identical objects, Tesla will only encode the object once.
 
-### Serialize objects with reference loop
+5. Serialize objects with reference loop
 
-With Tesla reference, you can serialize an object graph with reference loops. If you have two objects A and B. A has a member that holds an reference to B, while B has a member holds a reference to A. Usually, we follow the references and serialize the whole object graph. However, this won't work if there is a reference loop inside the tree. Tesla can break the loop automatically by defining the reference properties as Tesla reference in the Tesla schema.
+	With Tesla reference, you can serialize an object graph with reference loops. If you have two objects A and B. A has a member that holds an reference to B, while B has a member holds a reference to A. Usually, we follow the references and serialize the whole object graph. However, this won't work if there is a reference loop inside the tree. Tesla can break the loop automatically by defining the reference properties as Tesla reference in the Tesla schema.
 
-### Serialization with or without data transfer object (DTO)
+6. Serialization with or without data transfer object (DTO)
 
-Tesla was orignially build for a project that has hundreds of complicated objects. Most other binary protocols requrie us to use generated pure data transfer objects. We found that copying data between our business objects and generated data transfer objects is very expensive in a large scale service. We need to write a lot of code to copy data at development time. More importantly, the data copying between business objects and data transfer object wasted a lot of compute resources for a large scale service like ours.The goal of Tesla is make it easier to adopt for a real world application.
+	Tesla was orignially build for a project that has hundreds of complicated objects. Most other binary protocols requrie us to use generated pure data transfer objects. We found that copying data between our business objects and generated data transfer objects is very expensive in a large scale service. We need to write a lot of code to copy data at development time. More importantly, the data copying between business objects and data transfer object wasted a lot of compute resources for a large scale service like ours.The goal of Tesla is make it easier to adopt for a real world application.
 
-Tesla can generate source code for classes and enums from schema. This is very useful when you start from scratch. However, when you already have some source code, or you don't like separate your data (properties) from behavior (methods), you can use partial code generation, which generates serialization code only.
+	Tesla can generate source code for classes and enums from schema. This is very useful when you start from scratch. However, when you already have some source code, or you don't like separate your data (properties) from behavior (methods), you can use partial code generation, which generates serialization code only.
 
-### Multiple serialization encodings
+7. Multiple serialization encodings
 
-Tesla compiler comes with built-in templates for generating objects that can be serialized in binary and JSON format. You can extend Tesla to serialize objects in other formats like XML or BSON. Tesla supports different encoding method by providing different source code templates.
+	Tesla compiler comes with built-in templates for generating objects that can be serialized in binary and JSON format. You can extend Tesla to serialize objects in other formats like XML or BSON. Tesla supports different encoding method by providing different source code templates.
 
-### Object change detection and incremental updating
+8. Object change detection and incremental updating
 
-Tesla comes with Velocity templates that can be used to generate source code to calculate and encode object changes. The generated code recursively compares object properties, and only serialize the properties that are not the same. This makes it easy to push data changes incrementally.
+	Tesla comes with Velocity templates that can be used to generate source code to calculate and encode object changes. The generated code recursively compares object properties, and only serialize the properties that are not the same. This makes it easy to push data changes incrementally.
 
-### Support annotations and generate schema from existing source code
+9. Support annotations and generate schema from existing source code
 
-You can generate Tesla schema from existing Java classes and enums. You can deliver this schema to your service clients after your service is released. (We will add this feature to C# in the future).
+	You can generate Tesla schema from existing Java classes and enums. You can deliver this schema to your service clients after your service is released. (We will add this feature to C# in the future).
 
-### Flexible type mapping
+10. Flexible type mapping
 
-Tesla allows you to choose concrete types used in your source code. For example, you can choose between ```ArrayList<Integer>``` and ```int[]``` in Java, or betweeen ```vector<int>``` and ```list<int>``` in C++. There are more advanced type mappings in C++ API which allows you to map any type to Tesla types. 
+	Tesla allows you to choose concrete types used in your source code. For example, you can choose between ```ArrayList<Integer>``` and ```int[]``` in Java, or betweeen ```vector<int>``` and ```list<int>``` in C++. There are more advanced type mappings in C++ API which allows you to map any type to Tesla types. 
 
-### Customize generated source code 
+11. Customize generated source code 
 
-Tesla allows developers control the generated source code. For example, developers can insert Java annotations or .Net attributes in the generated classes or properties to support XML formatting. You can add performance logs into the serialization methods to mearsure the runtime performance. You can also add helper methods into generated classes to feed your needs. 
+	Tesla allows developers control the generated source code. For example, developers can insert Java annotations or .Net attributes in the generated classes or properties to support XML formatting. You can add performance logs into the serialization methods to mearsure the runtime performance. You can also add helper methods into generated classes to feed your needs. 
 
-### Multiple dimensional array
+12. Multiple dimensional array
 
-Tesla has builtin support for multiple dimensional arrays. 
+	Tesla has builtin support for multiple dimensional arrays. 
 
-### Multiple inheritance and polymorphic objects
+13. Multiple inheritance and polymorphic objects
 
-You can use inheritance in Tesla. A user object can extend another user object. Tesla even allows you to use multiple inheritance. However, the inheritance hierarchy may not retained as single inheritance in programming languages don't support multiple inheritance, for example, Java and C#. 
+	You can use inheritance in Tesla. A user object can extend another user object. Tesla even allows you to use multiple inheritance. However, the inheritance hierarchy may not retained as single inheritance in programming languages don't support multiple inheritance, for example, Java and C#. 
 
 Languages
 ----------
