@@ -38,7 +38,7 @@ Features
 
 	Tesla was orignially build for a project that has hundreds of complicated objects. Most other binary protocols requrie us to use generated pure data transfer objects. We found that copying data between our business objects and generated data transfer objects is very expensive in a large scale service. We need to write a lot of code to copy data at development time. More importantly, the data copying between business objects and data transfer object wasted a lot of compute resources for a large scale service like ours.The goal of Tesla is make it easier to adopt for a real world application.
 
-  Tesla can generate source code for classes and enums from schema. This is very useful when you start from scratch. However, when you already have some source code, or you don't like separate your data (properties) from behavior (methods), you can use partial code generation, which generates serialization code only.
+	Tesla can generate source code for classes and enums from schema. This is very useful when you start from scratch. However, when you already have some source code, or you don't like separate your data (properties) from behavior (methods), you can use partial code generation, which generates serialization code only.
 
 7. Multiple serialization encodings
 
