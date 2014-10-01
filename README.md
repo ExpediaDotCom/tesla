@@ -1,7 +1,7 @@
-Tesla
+﻿Tesla
 =========
 
-Tesla is a source code generation based binary object serialization framework built for high performance service messaging. It is similar to Protobuf, but has ability to serialize user objects directly into binary buffer without copying data between user objects and generated temporary objects. Unlike similar frameworks, Tesla use a template based source code generator to generate source code for all platforms. The template based source code generation allows users to customize their generated source code by simply editing a template. It also make it easy to extend Tesla to serialize object in other formats (such as JSON, XML and BSON) and do other property wise operations (such as comparing objects, ```toString()```, ```hashCode()```, coping objects, generating and applying changes, etc). Extending Tesla to a new programming language is also simplied, because the same code generator can generates source code in a different language easily via a different source code template. 
+Tesla is a source code generation based binary object serialization framework built for high performance service messaging. It is similar to Protobuf, but has ability to serialize user objects directly into binary buffer without copying data between user objects and generated temporary objects. Unlike similar frameworks, Tesla use a template based source code generator to generate source code for all languages and platforms Tesla supports, includes Java, C++ and C# on Windows, Linux and Mac OS. The template based source code generation allows users to customize their generated source code by simply editing a template. It also make it easy to extend Tesla to serialize object in other formats (such as JSON, XML and BSON) and do other property wise operations (such as comparing objects, ```toString()```, ```hashCode()```, coping objects, generating and applying changes, etc). Extending Tesla to a new programming language is also simplied, because the same code generator can generates source code in a different language easily via a different source code template. 
 
 
 Features
@@ -72,6 +72,8 @@ Built in language support:
 - C++
 - CSharp
 
+All programming languages use the same compiler to generate source code. The Tesla compiler itself is written in Java.
+
 Quick Start
 -----------
 
@@ -90,7 +92,7 @@ mvn clean install
 Try to run Tesla compiler with command
 
 ```
-java -jar tesla-compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar
+java -jar compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar
 ```
 
 Tesla compiler will give a usage message.

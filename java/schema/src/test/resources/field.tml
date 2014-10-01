@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="example v1.0"/>
+  <namespace name="com.expedia.tesla.automation.component.schema" />
+  <types>
+    <class name="TeslaClass" >
+		<field name="BooleanField" type="Boolean" />
+		<field name="ByteField" type="Byte" />
+		<field name="Int16Field" type="Int16" />
+		<field name="UInt16Field" type="UInt16" />
+		<field name="Int32Field" type="Int32" />
+		<field name="UInt32Field" type="UInt32" />
+		<field name="Int64Field" type="Int64" />
+		<field name="UInt64Field" type="UInt64" />
+		<field name="FloatField" type="Float" />
+		<field name="DoubleField" type="Double" />
+		<field name="BinaryField" type="Binary" />
+		<field name="StringField" type="String" />
+    </class>
+  </types> 
+</schema>

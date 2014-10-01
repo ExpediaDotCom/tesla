@@ -1,0 +1,20 @@
+/**
+ * 
+ * This file is generated code by Tesla compiler. Please don't edit. 
+ */
+
+#pragma once
+
+enum $enum.ShortName {
+#foreach( $entry in $enum.Entries)
+#if ($entry.Description)
+    /**
+     * $entry.Description
+     */
+#end
+    $entry.Name = $entry.Value#if( $foreach.hasNext ),
+#else
+#end
+#end
+
+};

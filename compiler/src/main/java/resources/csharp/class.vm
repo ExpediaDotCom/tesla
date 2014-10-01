@@ -1,0 +1,139 @@
+/// <copyright file="${class.ShortName}.cs" company="Expedia">
+///      Copyright (c) 2013. Expedia. All rights reserved.
+/// </copyright>
+/// <summary>
+///      The file contains the ${class.ShortName} class. 
+/// </summary>
+/// <remarks>
+///      This file is generated code by Tesla compiler. Please don't edit. 
+/// </remarks>
+
+#set($hasBase = $class.BaseTypeNames.size() == 1)
+#set($hasNoBase = $class.BaseTypeNames.size() != 1)
+#if($hasBase) #set($fields = $class.Fields) #else #set($fields = $class.AllFields) #end
+#set($inheritedFields = $class.InheritedFields)
+#set($allFields = $class.AllFields)
+#define($fieldName)$util.firstCharUpperCase($field.DisplayName)#end
+#define($fieldType)$util.getCSharpTypeName($field)#end
+
+#if( $class.NameSpace )namespace $class.NameSpace 
+{
+#end
+    using System;
+    using System.Collections.Generic;
+    using Expedia.Tesla.Serialization;
+
+    /// <summary>
+    /// Implementation of the $class.ShortName class
+    /// </summary>
+    [Serializable]
+    public class $class.ShortName : #if($hasBase) $class.BaseTypeNames.get(0),#end ISerializable
+    {
+        /// <summary>
+        /// Class Name.
+        /// </summary>
+        private const string ClassName = "$class.ShortName";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="$class.ShortName"/> class.
+        /// </summary>
+        public ${class.ShortName}()
+        {
+        }
+        
+#set ( $fieldCount = $allFields.size() - 1)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="$class.ShortName"/> class.
+        /// </summary>
+#foreach( $field in $allFields)
+        /// <param name="$fieldName">The $fieldName parameter.</param>
+#end
+        public ${class.ShortName}(
+#foreach( $field in $allFields)
+            $fieldType $fieldName#if ($velocityCount <= $fieldCount),
+#end
+#end)
+        {
+#foreach( $field in $allFields)
+            this.$fieldName = $fieldName;
+#end
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="$class.ShortName"/> class.
+        /// </summary>
+        /// <param name="reader">The ITeslaReader implementor.</param>
+        public ${class.ShortName}(ITeslaReader reader)
+        {
+            this.Deserialize(reader);
+        }
+    
+#foreach( $field in $fields)
+        /// <summary>
+        /// Gets or sets the $fieldName field.
+#if ($field.Description)
+        /// ($field.Description)
+#end
+        /// </summary>
+        public $fieldType $fieldName { get; set; }
+        
+#end
+
+        /// <summary>
+        /// Serializes the object.
+        /// </summary>
+        /// <param name="writer">The writer parameter.</param>
+        public #if($hasBase) new #end void Serialize(ITeslaWriter writer)
+        {
+            writer.WriteObjectBegin("$class.ShortName");
+            long schemaHash = writer.getSchemaHash();
+            if (schemaHash == 0)
+            {
+                throw new TeslaSerializationException("Schema hash is not set.");
+            }
+#foreach( $classVersion in $class.getClassVersions().entrySet() )
+            else if (schemaHash == ${classVersion.Key.SchemaHash}L) // version $classVersion.Key.VersionNumber, $classVersion.Key.Name
+            {
+#foreach( $field in $classVersion.Value.AllFields )
+                writer.$util.getWriteMethod($field)("$field.DisplayName", this.$fieldName#if($field.IsArray || $field.Type.canBeOptional())#if($field.IsOptional), true#else, false#end#end#if($field.Rank > 0), $field.Rank#end);
+#end
+            }
+#end
+            else
+            {
+                throw new TeslaSerializationException("Unsupported schema version " + writer.getSchemaHash());
+            }
+            writer.WriteObjectEnd("$class.ShortName");
+        }
+
+        /// <summary>
+        /// Deserializes the object.
+        /// </summary>
+        /// <param name="reader">The reader parameter.</param>
+#foreach( $field in $allFields)#if( $field.getRank() > 1)#set( $hasArray = true)#end#end
+        public #if($hasBase) new #end void Deserialize(ITeslaReader reader)
+        {
+            reader.ReadObjectBegin("$class.ShortName");
+            long schemaHash = reader.getSchemaHash();
+            if (schemaHash == 0)
+            {
+                throw new TeslaDeserializationException("Schema hash is not set.");
+            }
+#foreach( $classVersion in $class.getClassVersions().entrySet() )
+            else if (schemaHash == ${classVersion.Key.SchemaHash}L) // version $classVersion.Key.VersionNumber, $classVersion.Key.Name
+            {
+#foreach( $field in $classVersion.Value.AllFields )        
+                this.$fieldName = #if($field.getRank() > 0)($fieldType)#end reader.$util.getReadMethod($field)("$field.DisplayName"#if($field.IsArray || $field.Type.canBeOptional())#if($field.IsOptional), true#else, false#end#end#if($field.Rank > 0), $field.Rank#end);
+#end
+            }
+#end
+            else
+            {
+                throw new TeslaDeserializationException("Unsupported schema version " + reader.getSchemaHash());
+            }
+            reader.ReadObjectEnd("$class.ShortName");
+        }
+    }
+#if( $class.NameSpace ) 
+}
+#end

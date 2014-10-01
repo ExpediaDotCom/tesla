@@ -1,0 +1,95 @@
+#set($thisShortName = ${class.ShortName})
+/**
+ * ${thisShortName}.h
+ * 
+ * This file is generated code by Tesla compiler. Please don't edit. 
+ */
+
+#pragma once
+
+#foreach( $type in $class.referedUserTypes())
+\#include "${type.ShortName}.h"
+#end
+
+#set($hasBase = $class.BaseTypeNames.size() > 1)
+#set($hasNoBase = !$hasBase)
+#set($inheritedFields = $class.InheritedFields)
+#set($allFields = $class.AllFields)
+
+\#include <boost/variant.hpp>
+\#include <boost/shared_ptr.hpp>
+
+\#include <string>
+\#include <vector>
+\#include <map>
+
+template<class Reader, class Writer>
+class TeslaBinarySerializer;
+
+class ${thisShortName} #if($hasBase)public $class.BaseTypeNames.get(0)#end {
+public:
+    ${thisShortName}() {
+    }
+
+#if( $allFields.size() > 0)
+#set ( $fieldCount = $allFields.size() - 1)
+    explicit ${thisShortName}(
+#foreach( $field in $allFields)
+        $mapper.getDescriptor($field.Type).CppTypeName $field.Name#if ($velocityCount <= $fieldCount),
+#end
+#end) {
+#foreach( $field in $allFields)
+        ${field.SetterName}($field.Name);
+#end
+    }
+#end
+    
+    ${thisShortName}(const ${thisShortName} &rhs) {
+    	operator=(rhs);
+    }
+    
+#foreach( $field in $class.Fields)
+    $mapper.getDescriptor($field.Type).CppTypeName ${field.GetterName}() const {
+        return $field.Name;
+    }
+    
+    void ${field.SetterName}($mapper.getDescriptor($field.Type).CppTypeName value) {
+        $field.Name = value;
+    }
+    
+#end
+        
+    ${thisShortName}& operator=(const ${thisShortName} &rhs) {
+#foreach( $field in $allFields)
+        ${field.SetterName}(rhs.${field.Name});
+#end
+		return *this;
+    }
+    
+    bool operator==(const ${thisShortName}& other) const {
+        if (this == &other)
+            return true;
+#foreach( $field in $allFields)
+        if ($field.Name != other.$field.Name)
+            return false;
+#end
+        return true;
+    }
+
+    bool operator!=(const ${thisShortName}& other) const {
+    	return !(*this == other);
+	}
+
+protected:
+#foreach( $field in $class.Fields)
+#if ($field.Description)
+    /**
+     * $field.Description
+     */
+#end
+    $mapper.getDescriptor($field.Type).CppTypeName $field.Name;
+#end
+
+	friend class TeslaBinarySerializer<tesla::MemoryBinaryReader, tesla::MemoryBinaryWriter>;
+	friend class TeslaBinarySerializer<tesla::FileBinaryReader, tesla::FileBinaryWriter>;
+};

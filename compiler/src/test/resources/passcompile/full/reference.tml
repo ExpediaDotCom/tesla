@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="teslacompiler reference test v1.0" number="1"/>
+  <namespace name="com.expedia.tesla.compiler.test.passcompile.full.referencetest" />
+  <types>
+	
+	<class name="TestEmbeddedObject">
+	  <field name="IntField" type="int32" />
+	</class>
+	
+	<enum name="TestEnum">
+	  <entry name="Info" value="1" />
+	  <entry name="Warning" value="2" />
+	  <entry name="Error" value="3" />
+	</enum>
+	
+    <class name="ObjectReference">
+      <field name="ReferenceField1" type="TestEmbeddedObject" reference="true" />
+      <field name="ReferenceField2" type="TestEmbeddedObject" reference="true" />
+    </class>
+      
+    <class name="EnumReference">
+      <field name="ReferenceField1" type="TestEnum" reference="true" />
+      <field name="ReferenceField2" type="TestEnum" reference="true" />
+    </class>
+      
+    <class name="Int32Reference">
+      <field name="ReferenceField1" type="int32" reference="true" />
+      <field name="ReferenceField2" type="int32" reference="true" />
+    </class>
+      
+    <class name="StringReference">
+      <field name="ReferenceField1" type="string" reference="true" />
+      <field name="ReferenceField2" type="string" reference="true" />
+    </class>
+      
+    <class name="BinaryReference">
+      <field name="ReferenceField1" type="binary" reference="true" />
+      <field name="ReferenceField2" type="binary" reference="true" />
+    </class>
+    
+    <class name="ArrayReference">
+      <field name="ReferenceField1" type="int32" rank="1" reference="true" />
+      <field name="ReferenceField2" type="int32"  rank="1" reference="true" />
+    </class>
+
+    <class name="ReferenceArray">
+      <field name="ReferenceArrayField" type="array(reference(TestEmbeddedObject))" />
+    </class>
+
+  </types> 
+</schema>

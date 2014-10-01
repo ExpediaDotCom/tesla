@@ -1,0 +1,88 @@
+#set($thisShortName = ${class.ShortName})
+/**
+ * ${thisShortName}.java
+ * 
+ * This file is generated code by Tesla compiler. Please don't edit. 
+ */
+
+#set($hasBase = $class.BaseTypeNames.size() == 1)
+#if($hasBase) #set($fields = $class.Fields) #else #set($fields = $class.AllFields) #end
+#set($allFields = $class.AllFields)
+#define($fieldName)$util.firstCharLowerCase($field.Name)#end
+#define($fieldType)$util.getJavaTypeName($field)#end
+#define($getterName)#if(${field.GetterName})${field.GetterName}#{else}get${field.DisplayName}#end#end
+#define($setterName)#if(${field.SetterName})${field.SetterName}#{else}set${field.DisplayName}#end#end
+
+#if( $class.NameSpace )package $class.NameSpace;
+#end
+
+public #if($isAbastract)abstract #{end}class ${thisShortName} #if($hasBase)extends $class.BaseTypeNames.get(0)#end {
+#foreach( $field in $fields)
+#if ($field.Description)
+    /**
+     * $field.Description
+     */
+#end
+    protected $fieldType $fieldName;
+#end
+
+    public ${thisShortName}() {
+    }
+
+#if( $allFields.size() > 0 )
+#set ( $fieldCount = $allFields.size() - 1)
+    public ${thisShortName}(
+#foreach( $field in $allFields)
+        $fieldType $fieldName#if ($velocityCount <= $fieldCount),
+#end
+#end) {
+#foreach( $field in $allFields)
+        $setterName($fieldName);
+#end
+    }
+#end
+
+#if($deserializerName)
+    public ${thisShortName}($deserializerName deserializer) {
+        deserializer.read(this);
+    }
+#end
+    
+#foreach( $field in $fields)
+    public $fieldType ${getterName}() {
+        return this.$fieldName;
+    }
+
+    public void $setterName($fieldType value) {
+        this.$fieldName = value;
+    }
+    
+#end
+
+    @java.lang.Override
+    public int hashCode() {
+        return new org.apache.commons.lang3.builder.HashCodeBuilder(17, 37)
+#foreach( $field in $allFields)
+                .append(this.$fieldName)
+#end
+                .toHashCode();
+    }
+
+    @java.lang.Override
+    public boolean equals(java.lang.Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        $class.ShortName other = ($class.ShortName) obj;
+        return new org.apache.commons.lang3.builder.EqualsBuilder()
+#foreach( $field in $allFields)
+                .append(this.$fieldName, other.$fieldName)
+#end
+                .isEquals();
+    }
+
+    
+}

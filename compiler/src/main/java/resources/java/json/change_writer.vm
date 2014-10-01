@@ -1,0 +1,252 @@
+########################################################################################################################
+##  Context variable requiered
+##  1. schema
+##  2. mapper 
+##  3. serialzerName
+########################################################################################################################
+
+## add boolean, int32 and uint32
+#set( $bool_desc = $mapper.getTypeDescriptor($schema.addType("boolean")) )
+#set( $int32_desc = $mapper.getTypeDescriptor( $schema.addType("int32") ) )
+#set( $uint32_desc = $mapper.getTypeDescriptor( $schema.addType("uint32") ) )
+#set( $string_desc = $mapper.getTypeDescriptor( $schema.addType("string") ) )
+
+    public static final long SCHEMA_HASH = ${schema.Version.SchemaHash}L;
+    private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.node.JsonNodeFactory NODE_FACTORY = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance;
+    private com.expedia.tesla.serialization.ReferencePolicy refPolicy = new com.expedia.tesla.serialization.ReferencePolicy();
+    private java.io.OutputStream stream;
+    
+    ${serialzerName}(java.io.OutputStream stream) throws java.io.IOException {
+        this.stream = stream;
+    }
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isClass() )
+    @Override
+    public void write(${type.Name} oldValue, ${type.Name} newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        com.fasterxml.jackson.databind.JsonNode deltaNode = write${td.Symbol}(oldValue, newValue);
+        if (deltaNode != null) {
+            OBJECT_MAPPER.writeValue(stream, deltaNode);
+        }
+    }
+
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (oldValue == newValue)
+            return null;
+        
+        com.fasterxml.jackson.databind.node.ObjectNode jn = null;
+        com.fasterxml.jackson.databind.JsonNode ejn = null;
+#foreach( $f in $type.AllFields )
+#set( $ftd = $mapper.getTypeDescriptor($f.Type))
+#if( ${f.GetterName} )
+        if ((ejn = write${ftd.Symbol}(oldValue.${f.GetterName}(), newValue.${f.GetterName}())) != null) {
+#else
+        if ((ejn = write${ftd.Symbol}(oldValue.get${f.DisplayName}(), newValue.get${f.DisplayName}())) != null) {
+#end
+            if (jn == null) {
+                jn = NODE_FACTORY.objectNode();
+            }
+            jn.put("$f.DisplayName", ejn);
+        }
+#end
+        return jn;
+    }
+
+#end
+#end
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isNullable() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (oldValue == newValue)
+            return null;
+
+        if (oldValue != null && newValue == null) {
+            return NODE_FACTORY.nullNode();
+        } else {
+            return write${etd.Symbol}(oldValue, newValue);
+        }
+    }
+#end
+#if( $type.isArray() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        com.fasterxml.jackson.databind.node.ArrayNode jan = null;
+        for (int i = 0; i < Math.max(size(oldValue), size(newValue)); i++) {
+            com.fasterxml.jackson.databind.JsonNode jen = write${etd.Symbol}(get(oldValue, i), get(newValue, i));
+            if (jen != null) {
+                if (jan == null) 
+                    jan = NODE_FACTORY.arrayNode();
+                jan.add(i);
+                jan.add(jen);
+            }
+        }
+        
+        return jan;
+    }
+#end
+#if( $type.isMap() )
+#set($ktd = $mapper.getTypeDescriptor($type.KeyType))
+#set($vtd = $mapper.getTypeDescriptor($type.ValueType))
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        ArrayNode jn = null;
+        for (java.util.Map.Entry<$mapper.box(${ktd.InterfaceName}), $mapper.box(${vtd.InterfaceName})> entry : newValue.entrySet()) {
+            com.fasterxml.jackson.databind.JsonNode jne = write$vtd.getSymbol()(oldValue.get(entry.getKey()), entry.getValue());
+            if (jne != null) {
+                if (jn == null) 
+                    jn = NODE_FACTORY.arrayNode();
+                jn.add(write$ktd.getSymbol()(($mapper.box(${ktd.InterfaceName}))null, entry.getKey()));
+                jn.add(jne);
+            }
+        }
+        return jn;
+    }
+#end
+#if( $type.isEnum()  )
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (oldValue == newValue)
+            return null;
+        else
+            return write${string_desc.Symbol}(oldValue.toString(), newValue.toString());
+    }
+#end
+#if( $type.isPoly() )
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (oldValue.equals(newValue))
+            return null;
+
+#set($tid = 0)
+#foreach( $et in $type.ElementTypes )
+#set($etd = $mapper.getTypeDescriptor($et))
+        #if($tid > 0)} else#end if (newValue.getClass().equals(${mapper.box($etd.InterfaceName)}.class)) {
+            return write${etd.Symbol}(($mapper.box(${etd.InterfaceName}))oldValue, ($mapper.box(${etd.InterfaceName}))newValue);
+#set($tid = $tid + 1)
+#end
+        } else {
+            throw new com.expedia.tesla.serialization.TeslaSerializationException(String.format(
+                "Illegal type %s for (type id '$type.TypeId')", 
+                newValue.getClass().toString()));
+        }
+    }
+#end
+#if( $type.isReference() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+#set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        com.fasterxml.jackson.databind.JsonNode jne = write${etd.Symbol}(($mapper.box(${etd.InterfaceName}))oldValue, ($mapper.box(${etd.InterfaceName}))newValue);
+        if (jne == null)
+            return null;
+        com.fasterxml.jackson.databind.node.ObjectNode jn = NODE_FACTORY.objectNode();
+        int id = refPolicy.getOutputReferenceId(newValue, ${clzzName}.class);
+        if (id > 0) {
+            jn.put("@reference", id);
+        } else {
+            jn.put("@id", -id);
+            jn.put("@value", jne);
+        }
+
+        return jn;
+    }
+#end
+#if( $type.isPrimitive() )
+    public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($mapper.box($td.InterfaceName) oldValue, $mapper.box($td.InterfaceName) newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
+        if (oldValue == newValue 
+            || (oldValue != null && oldValue.equals(newValue)) 
+            || (newValue != null && newValue.equals(oldValue)))
+            return null;
+            
+#if( $type.Name == "byte" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "int16" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "int32" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "int64" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "uint16" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "uint32" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "uint64" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "boolean" )
+        return NODE_FACTORY.booleanNode(newValue);
+#elseif( $type.Name == "float" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "double" )
+        return NODE_FACTORY.numberNode(newValue);
+#elseif( $type.Name == "string" )
+        return NODE_FACTORY.textNode(newValue);
+#elseif( $type.Name == "binary" )
+        return NODE_FACTORY.binaryNode(newValue);
+#else
+        wrong!
+#end       
+    }
+#end
+
+#end
+
+    private static <T> T get(java.util.List<T> v, int i) {
+        return v.get(i);
+    }
+    
+    private static <T> T get(T[] v, int i) {
+        return v[i];
+    }
+    
+    private static byte get(byte[] v, int i) {
+        return v[i];
+    }
+    private static short get(short[] v, int i) {
+        return v[i];
+    }
+    private static int get(int[] v, int i) {
+        return v[i];
+    }
+    private static long get(long[] v, int i) {
+        return v[i];
+    }
+    private static float get(float[] v, int i) {
+        return v[i];
+    }
+    private static double get(double[] v, int i) {
+        return v[i];
+    }
+    private static boolean get(boolean[] v, int i) {
+        return v[i];
+    }
+
+    private static <T> int size(java.util.List<T> v) {
+        return v.size();
+    }
+
+    private static <T> int size(T[] v) {
+        return v.length;
+    }
+    private static int size(byte[] v) {
+        return v.length;
+    }
+    private static int size(short[] v) {
+        return v.length;
+    }
+    private static int size(int[] v) {
+        return v.length;
+    }
+    private static int size(long[] v) {
+        return v.length;
+    }
+    private static int size(float[] v) {
+        return v.length;
+    }
+    private static int size(double[] v) {
+        return v.length;
+    }
+    private static int size(boolean[] v) {
+        return v.length;
+    }
+    
