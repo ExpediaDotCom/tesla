@@ -1,0 +1,242 @@
+/**
+ * xxx.h
+ * 
+ * This file is generated code by Tesla compiler. Please don't edit. 
+ */
+## add boolean, int32 and uint32
+#set( $bool_desc = $mapper.getDescriptor($schema.addType("boolean")) )
+#set( $int32_desc = $mapper.getDescriptor( $schema.addType("int32") ) )
+#set( $uint32_desc = $mapper.getDescriptor( $schema.addType("uint32") ) )
+#define($read_ref_cache_var_name)read_cache_${td.CppTypeName.replaceAll("\.|<|>|,|\[|\]|\:|\s", "_")}_#end
+#define($write_ref_cache_var_name)write_cache_${td.CppTypeName.replaceAll("\.|<|>|,|\[|\]|\:|\s", "_")}_#end
+
+#pragma once
+
+#foreach( $type in $userTypes)
+#if( $type.isUserType() )
+\#include "$type.ShortName.h"
+#end
+#end
+
+\#include <boost/variant.hpp>
+\#include <boost/shared_ptr.hpp>
+
+\#include <string>
+\#include <vector>
+\#include <map>
+
+template<class Reader, class Writer>
+class TeslaBinarySerializer {
+public:
+	TeslaBinarySerializer(Reader &r, Writer &w) : reader(r), writer(w) {
+	}
+	
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getDescriptor($type))
+#if( $type.isClass() )
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+#foreach( $f in $type.AllFields )
+#set( $ftd = $mapper.getDescriptor($f.Type))
+        write${ftd.Symbol}("$f.Name", v.$f.Name);
+#end
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+#foreach( $f in $type.AllFields )
+#set( $ftd = $mapper.getDescriptor($f.Type))
+        read${ftd.Symbol}("$f.Name", v.$f.Name);
+#end
+    }
+#end
+
+#end
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getDescriptor($type))
+#if( $type.isNullable() )
+#set($etd = $mapper.getDescriptor($type.ElementType))
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+        if (v == NULL) {
+            write${bool_desc.Symbol}(name, true);
+        } else {
+            write${bool_desc.Symbol}(name, false);
+            write${etd.Symbol}(name, *v);
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+    	bool flag;
+    	read${bool_desc.Symbol}(name, flag);
+    	if (!flag) {
+    		if (v == NULL) {
+    			v.reset(new ${etd.CppTypeName}());
+    		}
+            read${etd.Symbol}(name, *v);
+        } else {
+            v.reset();
+        }
+    }
+#end
+#if( $type.isArray() )
+#set($etd = $mapper.getDescriptor($type.ElementType))
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+        unsigned int size = v.size();
+        write${uint32_desc.Symbol}(name, size);
+        for (unsigned int i = 0; i < size; i++) {
+            write${etd.Symbol}(name, v[i]);
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+        unsigned int size;
+        read${uint32_desc.Symbol}(name, size);
+        v.resize(size);
+        for (unsigned int i = 0; i < size; i++) {
+            read${etd.Symbol}(name, v[i]);
+        }
+    }
+#end
+#if( $type.isMap() )
+#set($ktd = $mapper.getDescriptor($type.KeyType))
+#set($vtd = $mapper.getDescriptor($type.ValueType))
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+        write${uint32_desc.Symbol}(name, v.size());
+        for (${td.CppTypeName}::const_iterator i = v.begin(); i != v.end(); i++) {
+            write$ktd.getSymbol()(name, i->first);
+            write$vtd.getSymbol()(name, i->second);
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+        v.clear();
+        unsigned int size;
+        read${uint32_desc.Symbol}(name, size);
+        for (unsigned int i = 0; i < size; i++) {
+        	${ktd.CppTypeName} key;
+        	read$ktd.getSymbol()(name, key);
+        	${vtd.CppTypeName} value;
+        	read$vtd.getSymbol()(name, value);
+        	v[key] = value;
+        }
+    }
+#end
+#if( $type.isEnum()  )
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+        switch (v) {
+#foreach( $entry in $type.Entries )
+        case ${entry.Name}:
+            write${int32_desc.Symbol}(name, ${entry.Value});
+            break;
+#end
+        default:
+            throw tesla::SerializationException("Invalid enum value.");
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+        int value;
+        read${int32_desc.Symbol}(name, value);
+        switch (value) {
+#foreach( $entry in $type.Entries )
+        case ${entry.Value}:
+            v = ${entry.Name};
+            return;
+#end
+        default:
+            throw tesla::DeserializationException("Invalid enum value.");
+        }
+    }
+#end
+#if( $type.isPoly() )
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+    	switch (v.which()) {
+#set($tid = 0)
+#foreach( $et in $type.ElementTypes )
+#set($etd = $mapper.getDescriptor($et))
+		case $tid:
+			write${int32_desc.Symbol}(name, $tid);
+            write${etd.Symbol}(name, boost::get<${etd.CppTypeName}>(v));
+            return;
+#set($tid = $tid + 1)
+#end
+        default:
+            throw tesla::SerializationException(
+                "Illegal type for (type id '$type.TypeId')");
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+        int t;
+        read${int32_desc.Symbol}(name, t);
+        switch (t) {
+#set($tid = 0)
+#foreach( $et in $type.ElementTypes )
+#set($etd = $mapper.getDescriptor($et) )        
+        case $tid: {
+        	$etd.CppTypeName value;
+            read${etd.Symbol}(name, value);
+            v = value;
+            return;
+        }
+#set($tid = $tid + 1)
+#end
+        default:
+            throw tesla::DeserializationException(
+                "Illegal type for (type id '$type.TypeId')");
+        }
+    }
+#end
+#if( $type.isReference() )
+#set($etd = $mapper.getDescriptor($type.ElementType))
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+    	std::map<$td.CppTypeName, int>::iterator i = ${write_ref_cache_var_name}.find(v);
+    	if (i == ${write_ref_cache_var_name}.end()) {
+            int newId = ${write_ref_cache_var_name}.size() + 1;
+            ${write_ref_cache_var_name}[v] = newId;
+            write${int32_desc.Symbol}(name, -newId);
+            write${etd.Symbol}(name, *v);
+        } else {
+        	int id = i->second;
+			write${int32_desc.Symbol}(name, id);
+        }
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+		int id;
+		read${int32_desc.Symbol}(name, id);
+        if (id >= 0) {
+            v = ${read_ref_cache_var_name}[id];
+        } else {
+        	v.reset(new ${etd.CppTypeName}());
+        	read${etd.Symbol}(name, *v);
+            ${read_ref_cache_var_name}[-id] = v;
+        }
+    }
+#end
+#if( $type.isPrimitive() )
+    void write${td.Symbol}(char const* name, $td.CppTypeName const& v) {
+        writer.write(name, v);
+    }
+    
+    void read${td.Symbol}(char const* name, $td.CppTypeName &v) {
+        reader.read(name, v);
+    }
+#end
+
+#end
+
+private:
+	Reader& reader;
+	Writer& writer;
+
+#set($type_set = $class.Name.getClass().forName("java.util.HashSet").newInstance())	
+#foreach( $type in $schema.Types)
+#if( $type.isReference() )
+#set($td = $mapper.getDescriptor($type))
+#if( $type_set.add("$write_ref_cache_var_name") )
+	std::map<$td.CppTypeName, int> $write_ref_cache_var_name;
+	std::map<int, $td.CppTypeName > $read_ref_cache_var_name;
+#end
+#end
+#end
+};

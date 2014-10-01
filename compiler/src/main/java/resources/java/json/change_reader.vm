@@ -1,0 +1,190 @@
+########################################################################################################################
+##  Context variable requiered
+##  1. schema
+##  2. mapper 
+##  3. deserialzerName
+########################################################################################################################
+
+## add boolean, int32 and uint32
+#set( $bool_desc = $mapper.getTypeDescriptor($schema.addType("boolean")) )
+#set( $int32_desc = $mapper.getTypeDescriptor( $schema.addType("int32") ) )
+#set( $uint32_desc = $mapper.getTypeDescriptor( $schema.addType("uint32") ) )
+#set( $string_desc = $mapper.getTypeDescriptor( $schema.addType("string") ) )
+
+    public static final long SCHEMA_HASH = ${schema.Version.SchemaHash}L;
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    private com.fasterxml.jackson.databind.JsonNode root;
+    private com.expedia.tesla.serialization.ReferencePolicy refPolicy = new com.expedia.tesla.serialization.ReferencePolicy();
+    
+    ${deserialzerName}(java.io.InputStream stream) throws java.io.IOException {
+        root = JSON_MAPPER.readTree(stream);
+    }
+ 
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isClass() )
+    @Override
+    public $td.InterfaceName read($td.InterfaceName v) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        return read${td.Symbol}(v, root);
+    }
+
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (!jn.isObject())
+            throw new AssertionError("BUG, not an object!");
+        com.fasterxml.jackson.databind.JsonNode vn;
+#foreach( $f in $type.AllFields )
+#set( $ftd = $mapper.getTypeDescriptor($f.Type))
+        vn = jn.get("$f.DisplayName");
+        if(vn != null) {
+            #if(${f.SetterName})v.${f.SetterName}#{else}v.set${f.DisplayName}#{end}(read${ftd.Symbol}(v.#if(${f.GetterName})${f.GetterName}#{else}get${f.DisplayName}#{end}(), vn));
+        }
+#end
+        return v;
+    }
+#end
+
+#end
+
+#foreach( $type in $schema.Types)
+#set($td = $mapper.getTypeDescriptor($type))
+#if( $type.isNullable() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (jn == null || jn.isNull()) {
+            return null;
+        } else {
+            return read${etd.Symbol}(v, jn);
+        }
+    }
+#end
+#if( $type.isArray() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (!jn.isArray())
+            throw new AssertionError("BUG, not a json array value");
+        java.util.Iterator<com.fasterxml.jackson.databind.JsonNode> itr = jn.elements();
+        java.util.Map<Integer, $mapper.box($etd.InterfaceName)> nv = new java.util.TreeMap<Integer, $mapper.box($etd.InterfaceName)>();        
+#if( $td.getActualTypeName().matches(".*\[\]$") )
+        for (int i = 0; i < v.length; i++) {
+            nv.put(i, v[i]);
+        }
+        while (itr.hasNext()) {
+            int index = itr.next().intValue();
+            read${etd.Symbol}(nv.get(index), itr.next());
+        }
+        $td.InterfaceName r = new $td.ActualTypeName.replaceFirst("(.*?)(\[\])((\[\])*)$", "$1[nv.size()]$3");
+        int i = 0;
+        for ($etd.InterfaceName e : nv.values()) {
+            r[i++] = e;
+        } 
+        return r;
+#else
+        for (int i = 0; i < v.size(); i++) {
+            nv.put(i, v.get(i));
+        }
+        while (itr.hasNext()) {
+            int index = itr.next().intValue();
+            read${etd.Symbol}(nv.get(index), itr.next());
+        }
+        v.clear();
+        v.addAll(nv.values());
+        return v;
+#end
+    }
+#end
+#if( $type.isMap() )
+#set($ktd = $mapper.getTypeDescriptor($type.KeyType))
+#set($vtd = $mapper.getTypeDescriptor($type.ValueType))
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (!jn.isArray())
+            throw new AssertionError("BUG, not a json array value");
+        java.util.Iterator<com.fasterxml.jackson.databind.JsonNode> itr = jn.elements();
+        while (itr.hasNext()) {
+            v.put(read$ktd.getSymbol()(($mapper.box(${ktd.InterfaceName}))null, itr.next()), read$vtd.getSymbol()(($mapper.box(${vtd.InterfaceName}))null, itr.next()));
+        }
+        return v;
+    }
+#end
+#if( $type.isEnum()  )
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        java.lang.String value = jn.textValue();
+#set( $enumName = $td.InterfaceName.replace('$', '.') )
+#foreach( $entry in $type.Entries )
+        if (value.equals("${entry.Name}")) {
+            return ${enumName}.${entry.Name};
+        }
+#end
+        throw new java.io.IOException(String.format(
+            "Invalid Enum value '%s' encountered when reading type id '$type.TypeId'", 
+            value));
+    }
+#end
+#if( $type.isPoly() )
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (jn.isNumber())
+            return jn.numberValue();
+        if (jn.isBoolean())
+            return jn.booleanValue();
+        if (jn.isTextual())
+            return jn.textValue();
+        if (jn.isNull())
+            return null;
+        // TODO: fix me
+        throw new java.io.IOException(String.format(
+                "Unexpected type %d for (type id \"$type.TypeId\")", 
+                $tid)); 
+    }
+#end
+#if( $type.isReference() )
+#set($etd = $mapper.getTypeDescriptor($type.ElementType))
+#set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
+    public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+        if (!jn.isObject())
+            throw new AssertionError("BUG, not a reference object!");
+
+        if (jn.has("@reference")) {
+            int id = read${int32_desc.Symbol}(0, jn.findValue("@reference"));
+            return refPolicy.getInputReference(id, ${clzzName}.class);
+        } else if (jn.has("@id")) {
+            int id = read${int32_desc.Symbol}(0, jn.findValue("@id"));
+            ${etd.InterfaceName} value = read${etd.Symbol}(v, jn.findValue("@value"));
+            refPolicy.putInputReference(-id, value, ${clzzName}.class);
+            return value;
+        }
+        throw new AssertionError("BUG, not a reference object!");
+    }
+#end
+#if( $type.isPrimitive() )
+    public $td.InterfaceName read${td.Symbol}($mapper.box($td.InterfaceName) v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
+#if( $type.Name == "byte" )
+        return (byte)jn.intValue();
+#elseif( $type.Name == "int16" )
+        return (short)jn.intValue();
+#elseif( $type.Name == "int32" )
+        return jn.intValue();
+#elseif( $type.Name == "int64" )
+        return jn.longValue();
+#elseif( $type.Name == "uint16" )
+        return (short)jn.intValue();
+#elseif( $type.Name == "uint32" )
+        return (int)jn.longValue();
+#elseif( $type.Name == "uint64" )
+        return jn.longValue();
+#elseif( $type.Name == "boolean" )
+        return jn.booleanValue();
+#elseif( $type.Name == "float" )
+        return (float)jn.doubleValue();
+#elseif( $type.Name == "double" )
+        return jn.doubleValue();
+#elseif( $type.Name == "string" )
+        return jn.textValue();
+#elseif( $type.Name == "binary" )
+        return jn.binaryValue();
+#else
+        wrong!
+#end  
+    }
+#end
+
+#end
+

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <version name="example v1.0" number="1"/>
+  <namespace name="com.expedia.tesla.example" />
+  <types>
+    <class name="Header" >
+      <field name="Version" type="int32"/>
+      <field name="Name" type="string"/>
+    </class>
+    <class name="Request" >
+      <field name="RequestHeader" type="Header" nullable="false"/>
+      <field name="Message" type="string"/>
+      <field name="OptionalMessage" type="string" nullable="true"/>
+    </class>
+    <class name="Response" >
+      <field name="ResponseHeader" type="Header" nullable="false"/>
+      <field name="ResponseMessage" type="string"/>
+    </class>
+  </types> 
+</schema>

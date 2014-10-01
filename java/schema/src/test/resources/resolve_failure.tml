@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:expedia:tesla:tml:v2">
+  <version name="example v2.0" number="2"/>
+  <namespace name="com.expedia.tesla.example" />
+  <types>
+    <class name="Employee" extends="Person">
+      <field name="Title" type="string" />
+    </class>
+    <class name="Person" >
+      <field name="Name" type="string"/>
+      <field name="Age" type="byte" nullable="true" />
+      <field name="Sex" type="Sex" nullable="false" />
+      <field name="Contacts" type="Contact" rank="1" />
+    </class>
+    <enum name="org.tesla.example.Sex">
+      <entry name="Male" value="1" />
+      <entry name="Female" value="2" />
+    </enum>
+    <class name="Contact" >
+      <field name="Type" type="ContactType" nullable="false" />
+      <field name="Value" type="String" nullable="false" />
+    </class>
+    <enum name="ContactType">
+      <entry name="Home" value="1" />
+      <entry name="Work" value="2" />
+      <entry name="Cell" value="3" />
+    </enum>
+  </types> 
+</schema>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:expedia:tesla:tml:v2">
+  <version name="tesla schema test v1.0" number="5" />
+  <namespace name="com.expedia.tesla.automation.component.schema" />
+  <types>
+  </types> 
+</schema>
