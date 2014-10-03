@@ -77,13 +77,15 @@ All programming languages use the same compiler to generate source code. The Tes
 Quick Start
 -----------
 
-Let's build a hello world Tesla application in Java.
+Let's build a hello world Tesla application in Java. 
 
 ### Build Tesla Compiler
 
+Tesla compiler is a command line tool that generates serialization source code for all languages Tesla supports. We will use it to generate Java source code in this Java tutorial. However, the same build can used to generate C++ and C# source code as well.
+
 The Tesla compiler requires Java 1.7 or newer to run.
 
-Enter the Java project root directory and build using [Apache Maven](http://maven.apache.org/)
+Enter Tesla root directory and build it using [Apache Maven](http://maven.apache.org/)
 
 ```
 mvn clean install
@@ -95,19 +97,21 @@ Try to run Tesla compiler with command
 java -jar compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar
 ```
 
-Tesla compiler will give a usage message.
+Tesla compiler will give a usage message. Now we have build Tesla compiler successfully. Let's move on to create a Hello World application in Java. 
 
 ### Create a Maven Project
 
-Create Hello World project with Maven project generator:
+To make it simple, let's create Hello World project with Maven project generator. Change your current directory to where you would like to place the project, and then run the following command line.
 
 ```
 mvn archetype:generate -DgroupId=com.mycompany.hello -DartifactId=hello -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 ```
 
+Maven project generator will create a directory ```hello``` with a file ```pom.xml``` and ```src``` directory.
+
 ### Create Schema
 
-Enter the project root folder. Create a text file with name ```hello.tml```, and copy the following schema into the text file:
+Enter the project root directory ```hello```. Create a text file with name ```hello.tml```, and copy the following schema into the text file:
 
 ```
 <schema xmlns="urn:expedia:tesla:tml:v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -121,14 +125,16 @@ Enter the project root folder. Create a text file with name ```hello.tml```, and
 </schema>
 ```
 
-The above schema defined just one object ```HellowMessage```. It has a string field ```greeting```. The message is put into namespace ```com.mycompany.hello```. Every schema must specify a ```version```. The version name is required while the version number is optional.
+The above schema defined just one object ```HellowMessage```. It has a string field ```greeting```. The message is put into a default namespace ```com.mycompany.hello```. Every schema must specify a ```version```. The version name is required while the version number is optional. 
+
+You can also use full name on the ```name``` attribute of the ```class``` element, which allows you to put your objects into different namespaces.
 
 ### Generate Java Source Code
 
-Run the Tesla compiler
+Run the Tesla compiler to generate Java source code. Please replace the ```<tesla-root>``` with your Tesla source code directory where you built Tesla compiler.
 
 ```
-java -jar tesla-compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar -o src/main/java -s com.mycompany.hello.Serializer hello.tml
+java -jar <tesla-root>/compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar -o src/main/java -s com.mycompany.hello.Serializer hello.tml
 ```
 
 Tesla compile will generates two Java source files:
