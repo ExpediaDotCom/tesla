@@ -81,9 +81,7 @@ Let's build a hello world Tesla application in Java.
 
 ### Build Tesla Compiler
 
-Tesla compiler is a command line tool that generates serialization source code for all languages Tesla supports. We will use it to generate Java source code in this Java tutorial. However, the same build can used to generate C++ and C# source code as well.
-
-The Tesla compiler requires Java 1.7 or newer to run.
+Tesla compiler is a command line tool that generates serialization source code for all languages Tesla supports. We will use it to generate Java source code in this Java tutorial. However, the same build can be used to generate C++ and C# source code as well. The Tesla compiler requires Java 1.7 or newer to run.
 
 Enter Tesla root directory and build it using [Apache Maven](http://maven.apache.org/)
 
@@ -101,13 +99,13 @@ Tesla compiler will give a usage message. Now we have build Tesla compiler succe
 
 ### Create a Maven Project
 
-To make it simple, let's create Hello World project with Maven project generator. Change your current directory to where you would like to place the project, and then run the following command line.
+To make it easier, let's create our Hello World project with Maven project generator. Change your current directory to where you would like to place the project, and then run the following command line:
 
 ```
 mvn archetype:generate -DgroupId=com.mycompany.hello -DartifactId=hello -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
 ```
 
-Maven project generator will create a directory ```hello``` with a file ```pom.xml``` and ```src``` directory.
+Maven project generator will create a directory ```hello``` with a file ```pom.xml``` and ```src``` subdirectory.
 
 ### Create Schema
 
