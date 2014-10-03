@@ -391,7 +391,9 @@ abstract class TmlProcessor {
 
 	public static long getSchemaHash(String filename)
 			throws TeslaSchemaException, IOException {
-		return getSchemaHash(new FileInputStream(filename));
+		try (InputStream is = new FileInputStream(filename)) {
+			return getSchemaHash(is);
+		}
 	}
 
 	private static long getSchemaHash(InputStream is)
@@ -403,12 +405,11 @@ abstract class TmlProcessor {
 			throw new TeslaSchemaException(ex.getMessage(), ex);
 		}
 
-		try (DigestInputStream dis = new DigestInputStream(is, md)) {
-			while (dis.read() != -1)
-				;
-			byte[] digest = md.digest();
-			return (new BigInteger(digest)).longValue();
-		}
+		DigestInputStream dis = new DigestInputStream(is, md);
+		while (dis.read() != -1)
+			;
+		byte[] digest = md.digest();
+		return (new BigInteger(digest)).longValue();
 	}
 
 	private static void dfs(TmlGraph graph, File root, TmlVisitor visitor)

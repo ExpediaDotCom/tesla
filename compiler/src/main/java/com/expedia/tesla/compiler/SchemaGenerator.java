@@ -11,6 +11,7 @@ package com.expedia.tesla.compiler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -104,7 +105,9 @@ public class SchemaGenerator {
 				java.lang.Class<?> clzz = Util.loadClass(name, this.classpath);
 				mapper.fromJavaClass(schemaBuilder, clzz);
 		}
-		schemaBuilder.build().save(new FileOutputStream(this.output));
+		try (OutputStream os = new FileOutputStream(this.output)) {
+			schemaBuilder.build().save(os);
+		}
 	}
 
 	public static void main(String[] args) throws Exception {
