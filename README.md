@@ -353,7 +353,7 @@ Greeting from Tesla server: Hello Tesla!
 
 See, we got the greeting.
 
-Tesla Sepcification
+Tesla Specification
 ------------
 
 Please refer Tesla specification [here](specification.md).

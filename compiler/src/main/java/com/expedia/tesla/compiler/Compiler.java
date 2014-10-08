@@ -289,6 +289,7 @@ public class Compiler {
 			writeEnums(ms.getEnumes());
 		}
 		writeAppSchema(ms.getSchemas());
+		System.out.println("Tesla compiled schema(s) successfully.");
 	}
 
 	private Map<String, Object> loadExtension() throws Exception {
@@ -311,7 +312,9 @@ public class Compiler {
 			variables.put("util", createUtilObject());
 			variables.putAll(loadExtension());
 
-			try (Writer writer = new FileWriter(getOutputPath(me.getName()))) {
+			String path = getOutputPath(me.getName());
+			try (Writer writer = new FileWriter(path)) {
+				System.out.println("Writing source file " + path);
 				te.merge(variables, writer);
 			}
 		}
@@ -328,11 +331,12 @@ public class Compiler {
 			String[] tmp = fullName.split("\\.");
 			path = FilenameUtils.concat(this.outputDir, tmp[tmp.length - 1] + ".h");
 		}
-		File dir = new File(path).getParentFile();
+		File file = new File(path);
+		File dir = file.getParentFile();
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
-		return path;
+		return file.getAbsolutePath();
 	}
 
 	private void writeClasses(List<MergedClass> classes) throws Exception {
@@ -344,7 +348,9 @@ public class Compiler {
 			variables.put("serializerName", this.appSchemaClassName);
 			variables.putAll(loadExtension());
 			
-			try (Writer writer = new FileWriter(getOutputPath(mc.getName()))) {
+			String path = getOutputPath(mc.getName());
+			try (Writer writer = new FileWriter(path)) {
+				System.out.println("Writing source file " + path);
 				te.merge(variables, writer);
 			}
 		}
@@ -391,7 +397,9 @@ public class Compiler {
 		variables.put("util", createUtilObject());
 		variables.put("mapper", new JavaTypeMapper());
 
-		try (Writer writer = new FileWriter(getOutputPath(this.appSchemaClassName))) {
+		String path = getOutputPath(this.appSchemaClassName);
+		try (Writer writer = new FileWriter(path)) {
+			System.out.println("Writing source file " + path);
 			te.merge(variables, writer);
 			writer.flush();
 		}
