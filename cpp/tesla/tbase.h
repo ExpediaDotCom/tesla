@@ -22,7 +22,7 @@
 #include <ios>
 
 #ifdef HAVE_STDINT_H
-#include <cstdint>
+#include <stdint.h>
 #endif
 
 namespace tesla {
