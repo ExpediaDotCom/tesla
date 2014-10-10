@@ -140,19 +140,19 @@ void AssertEquals(const tesla::Buffer& expected, const tesla::byte* actual, size
 // to setup a mock buffer (e.g.: single item vs. multiple items, handle Buffer
 // in a special way).
 template<class T>
-static void SetupMock(SerializedBufferBuilder& builder, T value) {
+void SetupMock(SerializedBufferBuilder& builder, T value) {
     builder.Write(value);
 }
 
 template<class T>
-static void SetupMock(SerializedBufferBuilder& builder, T* values, size_t size) {
+void SetupMock(SerializedBufferBuilder& builder, T* values, size_t size) {
     for (size_t i = 0; i < size; i++) {
         builder.Write(values[i]);
     }
 }
 
 template<>
-static void SetupMock(SerializedBufferBuilder& builder, void* values,
+void SetupMock(SerializedBufferBuilder& builder, void* values,
         size_t size) {
     builder.Binary(static_cast<tesla::byte*> (values), size);
 }

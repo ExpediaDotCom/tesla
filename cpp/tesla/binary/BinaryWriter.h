@@ -32,7 +32,7 @@ class BasicBinaryWriter: public Writer<Stream> {
 public:
     explicit BasicBinaryWriter(Stream* stream, SchemaVersion const& ver =
             SchemaVersion()) :
-            Writer(stream, ver) {
+            Writer<Stream>(stream, ver) {
     }
 
     // write a tesla type
@@ -42,57 +42,57 @@ public:
     }
 
     // write primitive byte
-    void write(const char* name, const byte& value) {
+    void write(const char* name, byte value) {
         writeByte(value);
     }
 
     // write primitive signed byte
-    void write(const char* name, const sbyte& value) {
+    void write(const char* name, sbyte value) {
         writeByte(static_cast<sbyte>(value));
     }
 
     // write primitive signed 16-bit int
-    void write(const char* name, const int16_t& value) {
-        writeVInt(static_cast<uint16_t>((value << 1) ^ (value >> 15)));
+    void write(const char* name, int16 value) {
+        writeVInt(static_cast<uint16>((value << 1) ^ (value >> 15)));
     }
 
     // write primitive signed 32-bit int
-    void write(const char* name, const int32_t& value) {
-        writeVInt(static_cast<uint32_t>((value << 1) ^ (value >> 31)));
+    void write(const char* name, int32 value) {
+        writeVInt(static_cast<uint32>((value << 1) ^ (value >> 31)));
     }
 
     // write primitive signed 64-bit int
-    void write(const char* name, const int64_t& value) {
-        writeVInt(static_cast<uint64_t>((value << 1) ^ (value >> 63)));
+    void write(const char* name, int64 value) {
+        writeVInt(static_cast<uint64>((value << 1) ^ (value >> 63)));
     }
 
     // write primitive unsigned 16-bit int
-    void write(const char* name, const uint16_t& value) {
+    void write(const char* name, uint16 value) {
         writeVInt(value);
     }
 
     // write primitive unsigned 32-bit int
-    void write(const char* name, const uint32_t& value) {
+    void write(const char* name, uint32 value) {
         writeVInt(value);
     }
 
     // write primitive unsigned 64-bit int
-    void write(const char* name, const uint64_t& value) {
+    void write(const char* name, uint64 value) {
         writeVInt(value);
     }
 
     // write primitive float
-    void write(const char* name, const float& value) {
+    void write(const char* name, float value) {
         writeBytes(&value, sizeof(value));
     }
 
     // write primitive double
-    void write(const char* name, const double& value) {
+    void write(const char* name, double value) {
         writeBytes(&value, sizeof(value));
     }
 
     // write primitive bool
-    void write(const char* name, const bool& value) {
+    void write(const char* name, bool value) {
         writeByte(value ? BOOL_TRUE : BOOL_FALSE);
     }
 
@@ -150,14 +150,6 @@ public:
         writeBinary(name, value, typename BinaryTraits<T>::Category());
     }
 
-    /*
-    // write a fixed sized buffer array
-    template<typename T, size_t N>
-    void writeBinary(const char* name, const T (&value)[N]) {
-        writeBinary(name, value, N, BinaryCategory_WriteInplace_FixedSize());
-    }
-    */
-
     template<typename T>
     void writeObject(const char* name, const T& value) {
         ObjectTraits<T>::Adapter::serialize(*this, value);
@@ -165,7 +157,7 @@ public:
 
     template<typename T>
     void writeEnum(const char* name, const T& value) {
-        int32_t v = EnumTraits<T>::IntCaster::get(value);
+        int32 v = EnumTraits<T>::IntCaster::get(value);
         write(name, v);
     }
 
@@ -187,16 +179,16 @@ public:
         bool isNull = NullableTraits<T>::Adapter::isNull(value);
         write(TeslaType_Boolean(), name, isNull);
         if (!isNull) {
-            write(TeslaType::NotNullableType(), name, NullableTraits<T>::Adapter::get(value));
+            write(typename TeslaType::NotNullableType(), name, NullableTraits<T>::Adapter::get(value));
         }
     }
 
     // write a tesla reference type
     template<typename TeslaType, typename T>
     void writeReference(TeslaType, const char* name, const T& value) {
-        int id = rp_.get<T>(value);
+        int id = rp_.template get<T>(value);
         if (id == 0) {
-            id = rp_.put<T>(value);
+            id = rp_.template put<T>(value);
             write("id", -id);
             write(typename TeslaType::ReferredType(), name, value);
         } else {
@@ -219,7 +211,7 @@ private:
     // private helper for fixed size string
     template<typename T>
     void writeString(const char* name, T& value, StringCategory_WriteInplace_FixedSize) {
-        write(name, s);
+        write(name, StringTraits<T>::Adapter::buffer(value), StringTraits<T>::Adapter::sizeInBytes(value));
     }
 
     // private helper for resizeable string
@@ -247,17 +239,6 @@ private:
         }
     }
 
-    /*
-    template<typename T>
-    void writeBinary(const char* name, const T& value, size_t N,
-            BinaryCategory_WriteInplace_FixedSize) {
-        writeVInt(N);
-		if (N > 0) {
-			writeBytes(value, N);
-		}
-    }
-    */
-
     // private helper for resizeable binary buffer
     template<typename T>
     void writeBinary(const char* name, const T& value, BinaryCategory_WriteInplace_Resizeable) {
@@ -284,7 +265,7 @@ private:
     template<typename TeslaType, typename T>
     void writeArray(TeslaType, const char* name, const T& value, ArrayCategory_InplaceWritable) {
         typedef typename T::const_reference reference;
-        writeElements(TeslaType::ElementType(), name, value.begin(),
+        writeElements(typename TeslaType::ElementType(), name, value.begin(),
                 value.end(), value.size());
     }
 
@@ -292,7 +273,7 @@ private:
     template<typename TeslaType, typename T>
     void writeArray(TeslaType, const char* name, const T& value, ArrayCategory_Insertable) {
         typedef typename T::const_iterator iterator;
-        writeElements(TeslaType::ElementType(), name, value.begin(),
+        writeElements(typename TeslaType::ElementType(), name, value.begin(),
                 value.end(), value.size());
     }
 
@@ -307,8 +288,8 @@ private:
     // private helper for user defined array types
     template<typename TeslaType, typename T>
     void writeArray(TeslaType, const char* name, const T& value, ArrayCategory_UserDefinedArray) {
-        ArrayTraits<T>::Adapter::IndexType max = ArrayTraits<T>::Adapter::size(value);
-        writeElements(typename TeslaType::ElementType(), name, value, max);
+        typename ArrayTraits<T>::Adapter::IndexType size = ArrayTraits<T>::Adapter::size(value);
+        writeElements(typename TeslaType::ElementType(), name, value, size);
     }
 
     // private helper to write elements of an array
@@ -335,20 +316,20 @@ private:
 
     // private helper to write a byte
     void writeByte(byte c) {
-        if (!((stream_->put(c)).good())) {
+        if (!((this->stream_->put(c)).good())) {
             throw SerializationException("Failed to write to stream.");
         }
     }
 
     // private helper to write a stream of bytes
     void writeBytes(const void* buf, size_t size) {
-        if (!((stream_->write(static_cast<const char*>(buf), size)).good())) {
+        if (!((this->stream_->write(static_cast<const char*>(buf), size)).good())) {
             throw SerializationException("Failed to write to stream.");
         }
     }
 
     // private helper to write any integer value
-    void writeVInt(uint64_t value) {
+    void writeVInt(uint64 value) {
         int count = 0;
         do {
             uint8_t b = (value & 0x7f);
@@ -380,7 +361,7 @@ struct WriteReferenceCache {
         const std::map<T, int>* tc = cache<T>();
         if (tc == NULL)
             return 0;
-        std::map<T, int>::const_iterator iter = tc->find(value);
+        typename std::map<T, int>::const_iterator iter = tc->find(value);
         return iter != tc->end() ? iter->second : 0;
     }
 

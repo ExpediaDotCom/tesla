@@ -1,20 +1,15 @@
 // windows
 #ifdef _MSC_VER
 
-#ifdef _HAS_TR1
-#undef _HAS_TR1
-#endif
-#define _HAS_TR1 1
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <windows.h>
-#include <random>                       // tr1::mt19937, tr1::uniform_*
+    #ifdef _HAS_TR1
+        #undef _HAS_TR1
+    #endif
+    #define _HAS_TR1 1
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <windows.h>
 
-#define isnan _isnan
-
-#else // _MSC_VER
-
-#include <tr1/random>                       // tr1::mt19937, tr1::uniform_*
+    #define isnan _isnan
 
 #endif //_MSC_VER
 
@@ -25,10 +20,12 @@
 #include <vector>
 #include <set>
 #include <list>
-#include <time.h>
+#include <ctime>
+#include <cstdlib>
 
 // boost
 #include <boost/variant.hpp>            // boost::variant
+#include <boost/shared_ptr.hpp>         // boost::shared_ptr
 
 //tesla
 #include <tesla/tbase.h>
@@ -36,20 +33,21 @@
 #include <tesla/detail/traits.h>
 #include <tesla/SchemaVersion.h>
 
+
 #include "TestHelpers.h"
 #include "SerializedBufferBuilder.h"
 
 using tesla::SchemaVersion;
 using tesla::byte;
 using tesla::sbyte;
-using tesla::int8_t;
-using tesla::int16_t;
-using tesla::int32_t;
-using tesla::int64_t;
-using tesla::uint8_t;
-using tesla::uint16_t;
-using tesla::uint32_t;
-using tesla::uint64_t;
+using tesla::int8;
+using tesla::int16;
+using tesla::int32;
+using tesla::int64;
+using tesla::uint8;
+using tesla::uint16;
+using tesla::uint32;
+using tesla::uint64;
 using tesla::Buffer;
 
 using tesla::TeslaType_Binary;
@@ -66,8 +64,8 @@ using tesla::TeslaType_StringNullable;
 
 using tesla::SchemaTraits;
 
-typedef boost::variant<byte, sbyte, int16_t, int32_t, int64_t, uint16_t,
-        uint32_t, uint64_t, float, double, bool, std::string, Buffer, Day> variant;
+typedef boost::variant<byte, sbyte, int16, int32, int64, uint16,
+        uint32, uint64, float, double, bool, std::string, Buffer, Day> variant;
 
 namespace tesla {
 
@@ -80,15 +78,8 @@ struct SchemaTraits<TestObject> {
 
 template<typename T>
 struct Rand {
-    typedef std::tr1::mt19937 RandEng;
-    typedef std::tr1::uniform_int<T> RandGen;
-
-    RandGen rg;
-    RandEng eng;
-
-    Rand() :
-        rg(std::numeric_limits<T>::min() + 1, std::numeric_limits<T>::max()) {
-        eng.seed(static_cast<unsigned long> (time(NULL)));
+	Rand() {
+		std::srand(time(0));
     }
 
     T min() const {
@@ -100,10 +91,11 @@ struct Rand {
     }
 
     T getRand() {
-        return rg(eng);
+    	return min() + std::rand() * (max() - min()) / RAND_MAX;
     }
 };
 
+/*
 template<>
 struct Rand<float> {
     typedef std::tr1::mt19937 RandEng;
@@ -157,14 +149,14 @@ struct Rand<double> {
         return rg(eng);
     }
 };
-
+*/
 template<>
 struct Rand<std::string> {
-    typedef std::tr1::mt19937 RandEng;
-    typedef std::tr1::uniform_int<char> RandGen;
+   // typedef std::tr1::mt19937 RandEng;
+   // typedef std::tr1::uniform_int<char> RandGen;
 
-    RandGen rg;
-    RandEng eng;
+   // RandGen rg;
+   // RandEng eng;
 
     std::string min() const {
         return "";
@@ -181,12 +173,12 @@ struct Rand<std::string> {
 
 template<>
 struct Rand<Buffer> {
-    typedef std::tr1::mt19937 RandEng;
+    /*typedef std::tr1::mt19937 RandEng;
     typedef std::tr1::uniform_int<char> RandGen;
 
     RandGen rg;
     RandEng eng;
-
+*/
     Buffer min() const {
         return Buffer();
     }
@@ -209,14 +201,14 @@ struct SchemaTraits<Day> {
 
 template<>
 struct Rand<Day> {
-    typedef std::tr1::mt19937 RandEng;
+/*    typedef std::tr1::mt19937 RandEng;
     typedef std::tr1::uniform_int<int32_t> RandGen;
 
     RandGen rg;
     RandEng eng;
-
-    Rand() : rg(Sunday, Saturday) {
-        eng.seed(static_cast<unsigned long> (time(NULL)));
+*/
+    Rand() {
+        std::srand(std::time(NULL));
     }
 
     Day min() const {
@@ -228,7 +220,7 @@ struct Rand<Day> {
     }
 
     Day getRand() {
-        return static_cast<Day>(rg(eng));
+        return static_cast<Day>(std::rand() % (max() - min()));
     }
 };
 
@@ -260,9 +252,9 @@ struct Case {
 
 template<typename T, typename U = T>
 class CaseGenerator {
-    typedef typename Rand<T>::RandGen RandGen;
+    /*typedef typename Rand<T>::RandGen RandGen;
     typedef typename Rand<T>::RandEng RandEng;
-
+*/
     mutable Rand<T> rand;
 
 public:
@@ -328,8 +320,8 @@ public:
 
     template<typename Container, typename AT>
     void getArray_(Container& values, AT) const {
-        Rand<size_t>::RandGen srg(0, MAX_ARRAY_SIZE);
-        size_t size = srg(rand.eng);
+        std::srand(std::time(NULL));	
+        size_t size = std::rand() % MAX_ARRAY_SIZE;
 
         for (size_t i = 0; i < size; i++) {
             typename Container::value_type element;
@@ -340,8 +332,8 @@ public:
 
     template<typename Container>
     void getArray_(Container& values, BasicElement) const {
-        Rand<size_t>::RandGen srg(0, MAX_ARRAY_SIZE);
-        size_t size = srg(rand.eng);
+        std::srand(std::time(NULL));
+        size_t size = std::rand() % MAX_ARRAY_SIZE;
 
         for (size_t i = 0; i < size; i++) {
             typename Container::value_type element;

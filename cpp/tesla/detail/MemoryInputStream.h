@@ -8,6 +8,7 @@
 #ifndef MEMORYINPUTSTREAM_H_
 #define MEMORYINPUTSTREAM_H_
 
+#include <cstring>
 #include <ios>
 
 #include <tesla/tbase.h>

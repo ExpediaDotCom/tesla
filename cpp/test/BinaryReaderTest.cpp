@@ -25,6 +25,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include <climits>
 
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/extensions/HelperMacros.h>
@@ -277,7 +278,7 @@ class ReaderTest: public CppUnit::TestFixture {
 
     void testRead_ArrayNullable_AutoPtrNull_Vector() {
         typedef typename CaseGenerator<T>::Vector Container;
-        typedef auto_ptr<Container> ArrayPtr;
+        typedef boost::shared_ptr<Container> ArrayPtr;
         SerializedBufferBuilder builder;
         builder.Boolean(true);
         Buffer buffer = builder.Build();
@@ -291,7 +292,7 @@ class ReaderTest: public CppUnit::TestFixture {
 
     void testRead_ArrayNullable_AutoPtrNotNull_Vector() {
         typedef typename CaseGenerator<T>::Vector Container;
-        typedef auto_ptr<Container> ArrayPtr;
+        typedef boost::shared_ptr<Container> ArrayPtr;
         Case<Container> cs = CaseGenerator<T> ().template getArray<Container> ();
         SerializedBufferBuilder builder;
         builder.Boolean(false);
@@ -508,23 +509,23 @@ public:
         unsigned char buf[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryReader reader(buf, sizeof(buf));
 
-        uint16_t actual = 0;
+        uint16 actual = 0;
         reader.read("name", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint16_t> (130), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint16> (130), actual);
 
         reader.read("aoie", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint16_t> (16385), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint16> (16385), actual);
     }
 
     void Read_DeserializeTooLargeUInt16_Throw() {
         SerializedBufferBuilder builder;
 
-        const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::max()) .Build();
+        const Buffer buffer = builder.Int64_t(
+                std::numeric_limits<int64>::max()).Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        uint16_t value;
+        uint16 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -536,23 +537,23 @@ public:
         unsigned char buf[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryReader reader(buf, sizeof(buf));
 
-        uint32_t actual = 0;
+        uint32 actual = 0;
         reader.read("name", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t> (130), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint32> (130), actual);
 
         reader.read("aoie", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint32_t> (16385), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint32> (16385), actual);
     }
 
     void Read_DeserializeTooLargeUInt32_Throw() {
         SerializedBufferBuilder builder;
 
         const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::max()) .Build();
+                std::numeric_limits<int64>::max()) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        uint32_t value;
+        uint32 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -564,12 +565,12 @@ public:
         unsigned char buf[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryReader reader(buf, sizeof(buf));
 
-        uint64_t actual = 0;
+        uint64 actual = 0;
         reader.read("name", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint64_t> (130), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint64> (130), actual);
 
         reader.read("aoie", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint64_t> (16385), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint64> (16385), actual);
     }
 
     void Read_DeserializeTooLargeUInt64_Throw() {
@@ -579,7 +580,7 @@ public:
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        uint64_t value;
+        uint64 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -591,23 +592,23 @@ public:
         unsigned char buf[] = { 0x02, 0x03 };
         BinaryReader reader(buf, sizeof(buf));
 
-        int16_t actual = 0;
+        int16 actual = 0;
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<int16_t> (1), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<int16> (1), actual);
 
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL(static_cast<int16_t> (-2), actual);
+        CPPUNIT_ASSERT_EQUAL(static_cast<int16> (-2), actual);
     }
 
     void Read_DeserializeTooSmallInt16_Throw() {
         SerializedBufferBuilder builder;
 
         const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::min()) .Build();
+                std::numeric_limits<int64>::min()) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        int16_t value;
+        int16 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -616,11 +617,11 @@ public:
         SerializedBufferBuilder builder;
 
         const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::max()) .Build();
+                std::numeric_limits<int64>::max()) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        int16_t value;
+        int16 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -634,7 +635,7 @@ public:
                 0xFF, 0xFF, 0x0F };
 
         BinaryReader reader(buf, sizeof(buf));
-        int32_t actual = 0;
+        int32 actual = 0;
         reader.read("", actual);
         CPPUNIT_ASSERT_EQUAL(-2, actual);
 
@@ -649,11 +650,11 @@ public:
         SerializedBufferBuilder builder;
 
         const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::min()) .Build();
+                std::numeric_limits<int64>::min()) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        int32_t value;
+        int32 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -662,11 +663,11 @@ public:
         SerializedBufferBuilder builder;
 
         const Buffer buffer = builder .Int64_t(
-                std::numeric_limits<int64_t>::max()) .Build();
+                std::numeric_limits<int64>::max()) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        int32_t value;
+        int32 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -684,21 +685,21 @@ public:
                 0xFF, 0xFF, 0x01 };
 
         BinaryReader reader(buf, sizeof(buf));
-        int64_t actual = 0;
+        int64 actual = 0;
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL((int64_t) -2, actual);
+        CPPUNIT_ASSERT_EQUAL((int64) -2, actual);
 
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL((int64_t) 2147483647, actual);
+        CPPUNIT_ASSERT_EQUAL((int64) 2147483647, actual);
 
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL((int64_t) INT_MIN, actual);
+        CPPUNIT_ASSERT_EQUAL((int64) INT_MIN, actual);
 
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL(+9223372036854775807LL, actual);
+        CPPUNIT_ASSERT_EQUAL((int64)+9223372036854775807LL, actual);
 
         reader.read("", actual);
-        CPPUNIT_ASSERT_EQUAL((-9223372036854775807LL - 1LL), actual);
+        CPPUNIT_ASSERT_EQUAL((int64)(-9223372036854775807LL - 1LL), actual);
     }
 
     void Read_DeserializeTooLargeInt64_Throw() {
@@ -708,7 +709,7 @@ public:
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        int64_t value;
+        int64 value;
         CPPUNIT_ASSERT_THROW(reader.read("foo", value),
                 DeserializationException);
     }
@@ -825,9 +826,9 @@ public:
     }
 
     void Read_DeserializeReadBinaryBuffer_Success() {
-        uint8_t values[] = { 0x1, 0x2, 0x3,
-                std::numeric_limits<uint8_t>::min(), 0x0, std::numeric_limits<
-                        uint32_t>::max() };
+        uint8 values[] = { 0x1, 0x2, 0x3,
+                std::numeric_limits<uint8>::min(), 0x0, std::numeric_limits<
+                        uint8>::max() };
 
         Buffer expected;
         for (size_t i = 0; i < sizeof(values); i++) {
@@ -838,9 +839,9 @@ public:
     }
 
     void Read_DeserializeTooLargeBinary_Throw() {
-        uint8_t values[] = { 0x1, 0x2, 0x3,
-                std::numeric_limits<uint8_t>::min(), 0x0, std::numeric_limits<
-                        uint32_t>::max() };
+        uint8 values[] = { 0x1, 0x2, 0x3,
+                std::numeric_limits<uint8>::min(), 0x0, std::numeric_limits<
+                        uint8>::max() };
 
         SerializedBufferBuilder builder;
 
@@ -849,11 +850,11 @@ public:
             expected.push_back(values[i]);
         }
 
-        Buffer buffer = builder .Binary(expected) .Build();
+        Buffer buffer = builder.Binary(expected) .Build();
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        uint8_t actual[2];
+        uint8 actual[2];
         size_t size = sizeof(actual);
 
         CPPUNIT_ASSERT_THROW(reader.read("", actual, size),
@@ -867,7 +868,7 @@ public:
 
         BinaryReader reader(&buffer.front(), buffer.size());
 
-        uint8_t actual[20];
+        uint8 actual[20];
         size_t size = 15;
 
         CPPUNIT_ASSERT_THROW(reader.read("", actual, size),
@@ -875,9 +876,9 @@ public:
     }
 
     void Read_DeserializeReadBinary_Success() {
-        uint8_t values[] = { 0x1, 0x2, 0x3,
-                std::numeric_limits<uint8_t>::min(), 0x0, std::numeric_limits<
-                        uint32_t>::max() };
+        uint8 values[] = { 0x1, 0x2, 0x3,
+                std::numeric_limits<uint8>::min(), 0x0, std::numeric_limits<
+                        uint8>::max() };
 
         Buffer expected;
         for (size_t i = 0; i < _countof(values); i++) {
@@ -890,7 +891,7 @@ public:
         {
             BinaryReader reader(&buffer.front(), buffer.size());
             size_t size = _countof(values);
-            uint8_t * actual = new uint8_t[size];
+            uint8 * actual = new uint8[size];
             reader.read("name", static_cast<void *> (actual), size);
             AssertEquals(expected, actual, size);
             delete[] actual;
@@ -923,7 +924,7 @@ public:
         {
             unsigned char buf[] = { 0x88, 0x80 };
             BinaryReader reader(buf, sizeof(buf));
-            uint64_t actual;
+            uint64 actual;
             CPPUNIT_ASSERT_THROW(reader.read("", actual),
                     DeserializationException);
         }
@@ -932,7 +933,7 @@ public:
             unsigned char buf[] = { 0x88, 0x80, 0x88, 0x80, 0x88, 0x80, 0x88,
                     0x80, 0x88, 0x80, 0x88, 0x80, 0x88, 0x01 };
             BinaryReader reader(buf, sizeof(buf));
-            uint64_t actual;
+            uint64 actual;
             CPPUNIT_ASSERT_THROW(reader.read("", actual),
                     DeserializationException);
         }
@@ -1122,7 +1123,7 @@ public:
     void Read_NullableObject_Null_Success() {
         {
             // smart pointer version
-            typedef auto_ptr<TestObject> TestObjectPtr;
+            typedef boost::shared_ptr<TestObject> TestObjectPtr;
             TestObjectPtr to;
             unsigned char buf[] = { 0x0D };
             BinaryReader reader(buf, sizeof(buf));
@@ -1144,7 +1145,7 @@ public:
     void Read_NullableObject_NotNull_Success() {
         {
             // smart pointer version
-            typedef auto_ptr<TestObject> TestObjectPtr;
+            typedef boost::shared_ptr<TestObject> TestObjectPtr;
             TestObjectPtr to;
             unsigned char buf[] = { 0x05, 0x03 };
             BinaryReader reader(buf, sizeof(buf));
@@ -1164,7 +1165,7 @@ public:
     }
 
     void Read_NullableObject_InvalidNullFlag() {
-        typedef auto_ptr<TestObject> TestObjectPtr;
+        typedef boost::shared_ptr<TestObject> TestObjectPtr;
         TestObjectPtr to;
         unsigned char buf[] = { 0x01, 0x03 };
         BinaryReader reader(buf, sizeof(buf));
@@ -1260,7 +1261,7 @@ public:
         {
             // vector<TestObject>
             typedef vector<TestObject> TestObjectArray;
-            typedef auto_ptr<TestObjectArray> TestObjectArrayPtr;
+            typedef boost::shared_ptr<TestObjectArray> TestObjectArrayPtr;
             TestObjectArray expected(2, TestObject(-2));
             unsigned char buf[] = { 0x05, 0x02, 0x03, 0x03 };
             BinaryReader reader(buf, sizeof(buf));
@@ -1289,7 +1290,7 @@ public:
         {
             // vector<TestObject>
             typedef vector<TestObject> TestObjectArray;
-            typedef auto_ptr<TestObjectArray> TestObjectArrayPtr;
+            typedef boost::shared_ptr<TestObjectArray> TestObjectArrayPtr;
             unsigned char buf[] = { 0x0D };
             BinaryReader reader(buf, sizeof(buf));
             TestObjectArrayPtr actual;
@@ -1316,7 +1317,7 @@ public:
         {
             // vector<TestObject>
             typedef vector<TestObject> TestObjectArray;
-            typedef auto_ptr<TestObjectArray> TestObjectArrayPtr;
+            typedef boost::shared_ptr<TestObjectArray> TestObjectArrayPtr;
             unsigned char buf[] = { 0x1D, 0x13 };
             BinaryReader reader(buf, sizeof(buf));
             TestObjectArrayPtr actual;
@@ -1350,12 +1351,12 @@ int main()
     runner.addTest(BinaryReaderTest::suite());
     runner.addTest(ReaderTest<byte>::suite());
     runner.addTest(ReaderTest<sbyte>::suite());
-    runner.addTest(ReaderTest<int16_t>::suite());
-    runner.addTest(ReaderTest<int32_t>::suite());
-    runner.addTest(ReaderTest<int64_t>::suite());
-    runner.addTest(ReaderTest<uint16_t>::suite());
-    runner.addTest(ReaderTest<uint32_t>::suite());
-    runner.addTest(ReaderTest<uint64_t>::suite());
+    runner.addTest(ReaderTest<int16>::suite());
+    runner.addTest(ReaderTest<int32>::suite());
+    runner.addTest(ReaderTest<int64>::suite());
+    runner.addTest(ReaderTest<uint16>::suite());
+    runner.addTest(ReaderTest<uint32>::suite());
+    runner.addTest(ReaderTest<uint64>::suite());
     runner.addTest(ReaderTest<float>::suite());
     runner.addTest(ReaderTest<double>::suite());
     runner.addTest(ReaderTest<bool>::suite());

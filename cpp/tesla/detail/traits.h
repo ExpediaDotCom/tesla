@@ -49,12 +49,12 @@ struct SchemaTraits {
 
 DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Byte, byte)
 DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int8, sbyte)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int16, int16_t)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int32, int32_t)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int64, int64_t)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt16, uint16_t)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt32, uint32_t)
-DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt64, uint64_t)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int16, int16)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int32, int32)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Int64, int64)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt16, uint16)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt32, uint32)
+DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(UInt64, uint64)
 DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Float, float)
 DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Double, double)
 DEFINE_PRIMITIVE_TESLA_TYPE_TRAITS(Boolean, bool)
@@ -80,7 +80,7 @@ struct EnumTraits {
     typedef T Type;
     struct IntCaster {
         typedef T UserType;
-        typedef int32_t IntType;
+        typedef int32 IntType;
         static IntType get(const UserType& val) {
             return static_cast<IntType>(val);
         }
@@ -163,7 +163,7 @@ template<>
 struct StringTraits<std::string> {
     typedef StringCategory_WriteInplace_Resizeable Category;
     typedef std::string Type;
-    typedef struct Adapter {
+    struct Adapter {
         static void resize(Type& value, size_t size) {
             value.resize(size);
         }

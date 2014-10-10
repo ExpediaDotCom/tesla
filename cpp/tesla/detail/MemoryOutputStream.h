@@ -9,6 +9,7 @@
 #define MEMORYOUTPUTSTREAM_H_
 
 #include <ios>
+#include <cstring>
 #include <tesla/tbase.h>
 
 namespace tesla {
