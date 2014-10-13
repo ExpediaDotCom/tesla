@@ -1,11 +1,18 @@
-/*
- * Copyright (C) 2013, Expedia Inc.  All rights reserved.
+/*******************************************************************************
+ * Copyright (c) 2014 Expedia Inc.
  *
- * types.h
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  Created on: Oct 23, 2013
- *      Author: Yunfei Zuo (yzuo@expedia.com)
- */
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 #ifndef TESLATYPES_H_
 #define TESLATYPES_H_
 #pragma once
@@ -51,12 +58,12 @@ namespace tesla {
 // Basic primitive types
 DEFINE_TESLA_PRIMITIVE_TYPE(Byte, byte)
 DEFINE_TESLA_PRIMITIVE_TYPE(Int8, sbyte)
-DEFINE_TESLA_PRIMITIVE_TYPE(Int16, int16_t)
-DEFINE_TESLA_PRIMITIVE_TYPE(Int32, int32_t)
-DEFINE_TESLA_PRIMITIVE_TYPE(Int64, int64_t)
-DEFINE_TESLA_PRIMITIVE_TYPE(UInt16, uint16_t)
-DEFINE_TESLA_PRIMITIVE_TYPE(UInt32, uint32_t)
-DEFINE_TESLA_PRIMITIVE_TYPE(UInt64, uint64_t)
+DEFINE_TESLA_PRIMITIVE_TYPE(Int16, int16)
+DEFINE_TESLA_PRIMITIVE_TYPE(Int32, int32)
+DEFINE_TESLA_PRIMITIVE_TYPE(Int64, int64)
+DEFINE_TESLA_PRIMITIVE_TYPE(UInt16, uint16)
+DEFINE_TESLA_PRIMITIVE_TYPE(UInt32, uint32)
+DEFINE_TESLA_PRIMITIVE_TYPE(UInt64, uint64)
 DEFINE_TESLA_PRIMITIVE_TYPE(Boolean, bool)
 DEFINE_TESLA_PRIMITIVE_TYPE(Float, float)
 DEFINE_TESLA_PRIMITIVE_TYPE(Double, double)

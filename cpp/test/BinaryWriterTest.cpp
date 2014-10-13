@@ -1,18 +1,29 @@
-//==========================================================================
-//
-// Copyright (C) 2011-2012, Expedia Inc.  All rights reserved.
-//
-// File:    BinaryWriterTest.cpp
-//
-// Desc:    Tesla binary writer unit test cases.
-//
-//==========================================================================
+/*******************************************************************************
+ * Copyright (c) 2014 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 // windows
+#ifdef _MSC_VER
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
-
 #pragma warning(disable : 4305 4800 4503)
+#else
+#ifndef _countof
+#define _countof(a) (sizeof(a)/sizeof(a[0]))
+#endif
+#endif
 
 // stl
 #include <algorithm>
@@ -20,6 +31,7 @@
 #include <limits>
 #include <sstream>
 #include <vector>
+#include <climits>
 
 // cppunit
 #include <cppunit/ui/text/TestRunner.h>
@@ -42,7 +54,7 @@ class BinaryWriter : public BasicFileBinaryWriter<fstream>
 {
 public:
 
-    BinaryWriter() : BasicFileBinaryWriter(FILE_NAME, SchemaVersion(),
+    BinaryWriter() : BasicFileBinaryWriter<fstream>(FILE_NAME, SchemaVersion(),
         Stream::trunc | Stream::in | Stream::out | Stream::binary)
     {}
 
@@ -132,23 +144,23 @@ template<typename T, typename U>
 void testWrite_Container(const Buffer& expected, const U& actual)
 {
     BinaryWriter writer;
-    writer.writeArray(SchemaTraits<T>::TeslaType::Array(), NULL, actual);
+    writer.writeArray(typename SchemaTraits<T>::TeslaType::Array(), NULL, actual);
     AssertEquals(expected, writer.buffer());
 }
 
-//template<typename T, typename U>
-//void testWrite_NullAbleContainer(const Buffer& expected, const U& actual)
-//{
-//    BinaryWriter writer;
-//    writer.writeArray(SchemaTraits<T>::TeslaType::ArrayNullable(), NULL, actual);
-//    AssertEquals(expected, writer.buffer());
-//}
+template<typename T, typename U>
+void testWrite_NullAbleContainer(const Buffer& expected, const U& actual)
+{
+    BinaryWriter writer;
+    writer.writeArray(typename SchemaTraits<T>::TeslaType::ArrayNullable(), NULL, actual);
+    AssertEquals(expected, writer.buffer());
+}
 
 template<typename T, typename U>
 void testWrite_Array2D(const Buffer& expected, const U& actual)
 {
     BinaryWriter writer;
-    writer.writeArray(SchemaTraits<T>::TeslaType::Array2D(), NULL, actual);
+    writer.writeArray(typename SchemaTraits<T>::TeslaType::Array2D(), NULL, actual);
     AssertEquals(expected, writer.buffer());
 }
 
@@ -162,7 +174,7 @@ template<typename T, typename U>
 void testWrite_ByTraits(Case<U> const& cs)
 {
     BinaryWriter writer;
-    writer.write(SchemaTraits<T>::TeslaType(), NULL, cs.value);
+    writer.write(typename SchemaTraits<T>::TeslaType(), NULL, cs.value);
     AssertEquals(cs.binary, writer.buffer());
 }
 
@@ -170,7 +182,7 @@ template<typename T>
 void testWrite_CastByTraits(Case<variant> const& cs)
 {
     BinaryWriter writer;
-    writer.write(SchemaTraits<T>::TeslaType(), NULL, boost::get<T>(cs.value)); 
+    writer.write(typename SchemaTraits<T>::TeslaType(), NULL, boost::get<T>(cs.value)); 
     AssertEquals(cs.binary, writer.buffer());
 }
 
@@ -180,11 +192,11 @@ void testWrite_Container(Case<Container> const& cs)
     testWrite_Container<T, Container>(cs.binary, cs.value);
 }
 
-//template<typename T, typename Container>
-//void testWrite_NullAbleContainer(Case<Container> const& cs)
-//{
-//    testWrite_NullAbleContainer<T, Container>(cs.binary, cs.value);
-//}
+template<typename T, typename Container>
+void testWrite_NullAbleContainer(Case<Container> const& cs)
+{
+    testWrite_NullAbleContainer<T, Container>(cs.binary, cs.value);
+}
 
 template<typename T, typename Container>
 void testWrite_Container_Cast(Case<Container> const& cs)
@@ -277,28 +289,28 @@ class WriterTest: public CppUnit::TestFixture
     void testWrite_Array_Vector()
     {
         typedef typename CaseGenerator<T>::Vector Container;
-        testWrite_Container<T, Container>(CaseGenerator<T>().getArray<Container>());
+        testWrite_Container<T, Container>(CaseGenerator<T>().template getArray<Container>());
     }
 
     void testWrite_Array_Set()
     {
         typedef typename CaseGenerator<T>::Set Container;
-        testWrite_Container<T, Container>(CaseGenerator<T>().getArray<Container>());
+        testWrite_Container<T, Container>(CaseGenerator<T>().template getArray<Container>());
     }
 
     void testWrite_Array_List()
     {
         typedef typename CaseGenerator<T>::List Container;
-        testWrite_Container<T, Container>(CaseGenerator<T>().getArray<Container>());
+        testWrite_Container<T, Container>(CaseGenerator<T>().template getArray<Container>());
     }
 
     void testWrite_Array_CArray()
     {
         typedef typename CaseGenerator<T>::Vector Container;
         const size_t SIZE = 7;
-        Case<Container> cs = CaseGenerator<T>().getArray<Container>(SIZE);
+        Case<Container> cs = CaseGenerator<T>().template getArray<Container>(SIZE);
         T values[SIZE];
-        for (int i = 0; i < cs.value.size(); i++)
+        for (size_t i = 0; i < cs.value.size(); i++)
             values[i] = cs.value[i];
         BinaryWriter writer;
         writer.write(typename SchemaTraits<T>::TeslaType::Array(), NULL, values);
@@ -308,28 +320,28 @@ class WriterTest: public CppUnit::TestFixture
     void testWrite_Array_Cast_Vector()
     {
         typedef typename CaseGenerator<T, variant>::Vector Container;
-        testWrite_Container<T, Container>(CaseGenerator<T, variant>().getArray<Container>());
+        testWrite_Container<T, Container>(CaseGenerator<T, variant>().template getArray<Container>());
     }
 
     void testWrite_Array_Cast_Set()
     {
         typedef typename CaseGenerator<T, variant>::Set Container;
-        testWrite_Container<T>(CaseGenerator<T, variant>().getArray<Container>());
+        testWrite_Container<T>(CaseGenerator<T, variant>().template getArray<Container>());
     }
 
     void testWrite_Array_Cast_List()
     {
         typedef typename CaseGenerator<T, variant>::List Container;
-        testWrite_Container<T>(CaseGenerator<T, variant>().getArray<Container>());
+        testWrite_Container<T>(CaseGenerator<T, variant>().template getArray<Container>());
     }
 
     void testWrite_Array_Cast_CArray()
     {
         typedef typename CaseGenerator<T, variant>::Vector Container;
         const size_t SIZE = 7;
-        Case<Container> cs = CaseGenerator<T, variant>().getArray<Container>(SIZE);
+        Case<Container> cs = CaseGenerator<T, variant>().template getArray<Container>(SIZE);
         variant values[SIZE];
-        for (int i = 0; i < cs.value.size(); i++)
+        for (size_t i = 0; i < cs.value.size(); i++)
             values[i] = cs.value[i];
         BinaryWriter writer;
         writer.write(typename SchemaTraits<T>::TeslaType::Array(), NULL, values);
@@ -338,46 +350,46 @@ class WriterTest: public CppUnit::TestFixture
 
     void testWrite_Array2D_Vector()
     {
-        typedef typename vector<vector<T> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef vector<vector<T> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_Array2D_Set()
     {
-        typedef typename set<set<T> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef set<set<T> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_Array2D_List()
     {
-        typedef typename list<list<T> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef list<list<T> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_Array2D_Cast_Vector()
     {
-        typedef typename vector<vector<variant> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef vector<vector<variant> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_Array2D_Cast_Set()
     {
-        typedef typename set<set<variant> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef set<set<variant> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_Array2D_Cast_List()
     {
-        typedef typename list<list<variant> > Container;
-        testWrite_Array2D<T, Container>(CaseGenerator<T>().getArray2D<Container>());
+        typedef list<list<variant> > Container;
+        testWrite_Array2D<T, Container>(CaseGenerator<T>().template getArray2D<Container>());
     }
 
     void testWrite_ArrayNullable_AutoPtr_Null()
     {
         typedef typename CaseGenerator<T>::Vector Container;
-        auto_ptr<Container> actual;
+        boost::shared_ptr<Container> actual;
         BinaryWriter writer;
-        writer.write(SchemaTraits<T>::TeslaType::ArrayNullable(),  "null array", actual);
+        writer.write(typename SchemaTraits<T>::TeslaType::ArrayNullable(),  "null array", actual);
         SerializedBufferBuilder builder;
         AssertEquals(builder.Boolean(true).Build(), writer.buffer());
     }
@@ -385,10 +397,10 @@ class WriterTest: public CppUnit::TestFixture
     void testWrite_ArrayNullable_AutoPtr_NotNull()
     {
         typedef typename CaseGenerator<T>::Vector Container;
-        Case<Container> cs = CaseGenerator<T>().getArray<Container>();
-        auto_ptr<Container> aArray(new Container(cs.value));
+        Case<Container> cs = CaseGenerator<T>().template getArray<Container>();
+        boost::shared_ptr<Container> aArray(new Container(cs.value));
         BinaryWriter writer;
-        writer.write(SchemaTraits<T>::TeslaType::ArrayNullable(), "array", aArray);
+        writer.write(typename SchemaTraits<T>::TeslaType::ArrayNullable(), "array", aArray);
         SerializedBufferBuilder builder;
         Buffer buffer = builder.Boolean(false).Build();
         buffer.insert(buffer.end(), cs.binary.begin(), cs.binary.end());
@@ -515,8 +527,8 @@ public:
 
     void Write_SerializeSingleByte_Success()
     {
-        uint8_t expected[] = { 0x1, 0x2, 0x3, std::numeric_limits<uint8_t>::min(), 0x0,
-            std::numeric_limits<uint32_t>::max() };
+        uint8_t expected[] = { 0x1, 0x2, 0x3, std::numeric_limits<uint8>::min(), 0x0,
+            std::numeric_limits<uint8>::max() };
         CheckSerialization(expected, _countof(expected));
     }
 
@@ -527,8 +539,8 @@ public:
     {
         unsigned char expected[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryWriter writer;
-        writer.write("name", static_cast<uint16_t> (130));
-        writer.write("name", static_cast<uint16_t> (16385));
+        writer.write("name", static_cast<uint16> (130));
+        writer.write("name", static_cast<uint16> (16385));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -539,8 +551,8 @@ public:
     {
         unsigned char expected[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryWriter writer;
-        writer.write("name", static_cast<uint32_t> (130));
-        writer.write("name", static_cast<uint32_t> (16385));
+        writer.write("name", static_cast<uint32> (130));
+        writer.write("name", static_cast<uint32> (16385));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -551,8 +563,8 @@ public:
     {
         unsigned char expected[] = { 0x82, 0x01, 0x81, 0x80, 0x01 };
         BinaryWriter writer;
-        writer.write("name", static_cast<uint64_t> (130));
-        writer.write("name", static_cast<uint64_t> (16385));
+        writer.write("name", static_cast<uint64> (130));
+        writer.write("name", static_cast<uint64> (16385));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -563,8 +575,8 @@ public:
     {
         unsigned char expected[] = { 0x02, 0x03 };
         BinaryWriter writer;
-        writer.write("name", static_cast<int16_t> (1));
-        writer.write("name", static_cast<int16_t> (-2));
+        writer.write("name", static_cast<int16> (1));
+        writer.write("name", static_cast<int16> (-2));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -577,9 +589,9 @@ public:
         unsigned char expected[] = { 0x03, 0xFE, 0xFF, 0xFF, 0xFF, 0x0F, 0xFF,
                 0xFF, 0xFF, 0xFF, 0x0F };
         BinaryWriter writer;
-        writer.write("name", static_cast<int32_t> (-2));
-        writer.write("name", static_cast<int32_t> (2147483647));
-        writer.write("name", static_cast<int32_t> (INT_MIN));
+        writer.write("name", static_cast<int32> (-2));
+        writer.write("name", static_cast<int32> (2147483647));
+        writer.write("name", static_cast<int32> (INT_MIN));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -596,11 +608,11 @@ public:
                 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                 0xFF, 0xFF, 0xFF, 0x01 };
         BinaryWriter writer;
-        writer.write("name", static_cast<int64_t> (-2));
-        writer.write("name", static_cast<int64_t> (2147483647));
-        writer.write("name", static_cast<int64_t> (INT_MIN));
-        writer.write("name", static_cast<int64_t> (+9223372036854775807LL));
-        writer.write("name", static_cast<int64_t> (-9223372036854775807LL - 1LL));
+        writer.write("name", static_cast<int64> (-2));
+        writer.write("name", static_cast<int64> (2147483647));
+        writer.write("name", static_cast<int64> (INT_MIN));
+        writer.write("name", static_cast<int64> (+9223372036854775807LL));
+        writer.write("name", static_cast<int64> (-9223372036854775807LL - 1LL));
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
@@ -658,15 +670,15 @@ public:
 
     void Write_SerializeBinary_Success()
     {
-        uint8_t values[] = { 0x1, 0x2, 0x3, std::numeric_limits<uint8_t>::min(), 0x0,
-            std::numeric_limits<uint32_t>::max() };
+        uint8_t values[] = { 0x1, 0x2, 0x3, std::numeric_limits<uint8>::min(), 0x0,
+            std::numeric_limits<uint8>::max() };
         CheckSerialization(static_cast<void*>(values), _countof(values));
     }
 
     void Write_SerializeBinaryBuffer_Success()
     {
         uint8_t values[] = { 0x1, 0x2, 0x3, std::numeric_limits<uint8_t>::min(), 0x0,
-            std::numeric_limits<uint32_t>::max() };
+            std::numeric_limits<uint8>::max() };
         Buffer expected(values, values + _countof(values));
         CheckSerialization(expected);
     }
@@ -701,7 +713,7 @@ public:
     void WriteObjectNullable_AutoPtr_Null_Success()
     {
         unsigned char expected[] = { 0x0D };
-        auto_ptr<TestObject> to;
+        boost::shared_ptr<TestObject> to;
         BinaryWriter writer;
         writer.write(TeslaType_ObjectNullable(), "nullable-to", to);
         AssertEquals(expected, sizeof(expected), writer.buffer());
@@ -724,7 +736,7 @@ public:
     void WriteObjectNullable_AutoPtr_NotNull_Success()
     {
         unsigned char expected[] = { 0x05, 0x54 };
-        auto_ptr<TestObject> to(new TestObject(42));
+        boost::shared_ptr<TestObject> to(new TestObject(42));
         BinaryWriter writer;
         writer.write(TeslaType_ObjectNullable(), "nullable-to", to);
         AssertEquals(expected, sizeof(expected), writer.buffer());
@@ -755,7 +767,7 @@ public:
         unsigned char expected[] = { 0x4, 0x1, 0x4, 0x3, 0x2 };
         TestObject to[4] = { TestObject(-1), TestObject(2), TestObject(-2), TestObject(1) };
         BinaryWriter writer;
-        writer.write("array size", _countof(to));
+        writer.write("array size", static_cast<uint64>(_countof(to)));
         for (size_t i = 0; i < 4; i++) to[i].serialize(writer);
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
@@ -820,7 +832,7 @@ public:
     void WriteObjectArrayNullable_AutoPtr_Null_Success()
     {
         unsigned char expected[] = { 0x0D };
-        auto_ptr<vector<TestObject> > to;
+        boost::shared_ptr<vector<TestObject> > to;
         BinaryWriter writer;
         writer.write(TeslaType_ObjectArrayNullable(), "nullVector", to);
         AssertEquals(expected, sizeof(expected), writer.buffer());
@@ -845,7 +857,7 @@ public:
     {
         unsigned char expected[] = { 0x05, 0x3, 0xa, 0x2, 0x9 };
         TestObject to[3] = { TestObject(5), TestObject(1), TestObject(-5) };
-        auto_ptr<std::list<TestObject> > aList(new std::list<TestObject>);
+        boost::shared_ptr<std::list<TestObject> > aList(new std::list<TestObject>);
         for (size_t i = 0; i < 3; i++) aList->push_back(to[i]);
         BinaryWriter writer;
         writer.write(TeslaType_ObjectArrayNullable(), "nullVector", aList);
@@ -897,7 +909,7 @@ public:
     void WriteStringNullable_cstring_AutoPtr_Null_Success()
     {
         unsigned char expected[] = { 0x0D };
-        auto_ptr<const char *> aString;
+        boost::shared_ptr<const char *> aString;
         BinaryWriter writer;
         writer.write(TeslaType_StringNullable(), "string", aString);
         AssertEquals(expected, sizeof(expected), writer.buffer());
@@ -919,7 +931,7 @@ public:
     void WriteStringNullable_stdstring_AutoPtr_Null_Success()
     {
         unsigned char expected[] = { 0x0D };
-        auto_ptr<std::string> aString;
+        boost::shared_ptr<std::string> aString;
         BinaryWriter writer;
         writer.write(TeslaType_StringNullable(), "string", aString);
         AssertEquals(expected, sizeof(expected), writer.buffer());
@@ -936,19 +948,18 @@ public:
         AssertEquals(expected, sizeof(expected), writer.buffer());
     }
 
-    // auto_ptr to a cstring is a bad idea - use std::string.
-    // ... because ~auto_ptr calls delete instead of delete[]
+    // boost::shared_ptr to a cstring is a bad idea - use std::string.
+    // ... because ~boost::shared_ptr calls delete instead of delete[]
     // ... However, tesla write handles it as proved by this test
     void WriteStringNullable_cstring_AutoPtr_NotNull_Success()
     {
         const char* actual = "Hello, World\n";
-        auto_ptr<const char*> aString(&actual);
+        boost::shared_ptr<const char*> aString(new const char*(actual));
         SerializedBufferBuilder builder;
         Buffer expected = builder.Boolean(false).String(actual).Build();
         BinaryWriter writer;
         writer.write(TeslaType_StringNullable(), "string", aString);
         AssertEquals(expected, writer.buffer());
-        aString.release();  // dirty, but works for unit test!
     }
 
     void WriteStringNullable_cstring_Pointer_NotNull_Success()
@@ -964,7 +975,7 @@ public:
     void WriteStringNullable_stdstring_AutoPtr_NotNull_Success()
     {
         const char* actual = "Hello, World\n";
-        auto_ptr<std::string> aString(new std::string(actual));
+        boost::shared_ptr<std::string> aString(new std::string(actual));
         SerializedBufferBuilder builder;
         Buffer expected = builder.Boolean(false).String(actual).Build();
         BinaryWriter writer;
@@ -1068,7 +1079,11 @@ public:
     }
 }; // class BinaryWriterTest
 
+#ifdef _MSC_VER
 int __cdecl main()
+#else
+int main()
+#endif
 {
     CppUnit::TextUi::TestRunner runner;
 
@@ -1078,12 +1093,12 @@ int __cdecl main()
     // Tesla v2 - unit tests template parametrized for each type
     runner.addTest(WriterTest<byte>::suite());
     runner.addTest(WriterTest<sbyte>::suite());
-    runner.addTest(WriterTest<int16_t>::suite());
-    runner.addTest(WriterTest<int32_t>::suite());
-    runner.addTest(WriterTest<int64_t>::suite());
-    runner.addTest(WriterTest<uint16_t>::suite());
-    runner.addTest(WriterTest<uint32_t>::suite());
-    runner.addTest(WriterTest<uint64_t>::suite());
+    runner.addTest(WriterTest<int16>::suite());
+    runner.addTest(WriterTest<int32>::suite());
+    runner.addTest(WriterTest<int64>::suite());
+    runner.addTest(WriterTest<uint16>::suite());
+    runner.addTest(WriterTest<uint32>::suite());
+    runner.addTest(WriterTest<uint64>::suite());
     runner.addTest(WriterTest<float>::suite());
     runner.addTest(WriterTest<double>::suite());
     runner.addTest(WriterTest<bool>::suite());
