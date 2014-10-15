@@ -293,7 +293,7 @@ import java.io.ByteArrayInputStream;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.HttpClient;
 
-class HelloClient {
+public class HelloClient {
 
 	public static void main(String... args) throws Exception {
 		HttpClient httpClient = new HttpClient();
