@@ -1,9 +1,18 @@
-/*
- * BinaryReader.h
+/*******************************************************************************
+ * Copyright (c) 2014 Expedia Inc.
  *
- *  Created on: Aug 19, 2013
- *      Author: Yunfei Zuo (yzuo@expedia.com)
- */
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 
 #ifndef BINARYREADER_H_
 #define BINARYREADER_H_
@@ -48,27 +57,27 @@ public:
         value = static_cast<sbyte>(readByte());
     }
 
-    void read(const char* name, int16_t& value) {
-        value = castValue<int16_t>(readZigZag());
+    void read(const char* name, int16& value) {
+        value = castValue<int16>(readZigZag());
     }
 
-    void read(const char* name, int32_t& value) {
-        value = castValue<int32_t>(readZigZag());
+    void read(const char* name, int32& value) {
+        value = castValue<int32>(readZigZag());
     }
 
-    void read(const char* name, int64_t& value) {
+    void read(const char* name, int64& value) {
         value = readZigZag();
     }
 
-    void read(const char* name, uint16_t& value) {
-        value = castValue<uint16_t>(readVInt());
+    void read(const char* name, uint16& value) {
+        value = castValue<uint16>(readVInt());
     }
 
-    void read(const char* name, uint32_t& value) {
-        value = castValue<uint32_t>(readVInt());
+    void read(const char* name, uint32& value) {
+        value = castValue<uint32>(readVInt());
     }
 
-    void read(const char* name, uint64_t& value) {
+    void read(const char* name, uint64& value) {
         value = readVInt();
     }
 
@@ -147,7 +156,7 @@ public:
 
     template<typename T>
     void readEnum(const char* name, T& value) {
-        EnumTraits<T>::IntCaster::set(value, read<int32_t>(name));
+        EnumTraits<T>::IntCaster::set(value, read<int32>(name));
     }
 
     template<typename TeslaType, typename T>
@@ -185,7 +194,7 @@ private:
 
     template<typename T>
     void readString(const char* name, T& value, StringCategory_WriteInplace_FixedSize) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         size_t capacity = StringTraits<T>::Adapter::capacity(value);
         if (capacity < size + 1) {
             std::stringstream ss;
@@ -205,7 +214,7 @@ private:
 
     template<typename T>
     void readString(const char* name, T& value, StringCategory_WriteInplace_Resizeable) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         StringTraits<T>::Adapter::resize(value, size);
         char* buf = StringTraits<T>::Adapter::buffer(value);
         readBytes(buf, size);
@@ -213,14 +222,14 @@ private:
 
     template<typename T>
     void readBinary(const char* name, T& value, BinaryCategory_WriteInplace_Resizeable) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         BinaryTraits<T>::Adapter::resize(value, size);
         readBytes(BinaryTraits<T>::Adapter::buffer(value), size);
     }
 
     template<typename T>
     void readBinary(const char* name, T& value, BinaryCategory_WriteInplace_FixedSize) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         size_t capacity = BinaryTraits<T>::Adapter::capacityInBytes(value);
         if (size > capacity) {
             std::stringstream ss;
@@ -247,7 +256,7 @@ private:
 
     template<typename TeslaType, typename T>
     void readArray(TeslaType, const char* name, T& value, ArrayCategory_InplaceWritable) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         ArrayTraits<T>::Adapter::resize(value, size);
         for (size_t i = 0; i < size; i++) {
             read(typename TeslaType::ElementType(), NULL,
@@ -257,7 +266,7 @@ private:
 
     template<typename TeslaType, typename T>
     void readArray(TeslaType, const char* name, T& value, ArrayCategory_Insertable) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         ArrayTraits<T>::Adapter::clear(value);
         for (size_t i = 0; i < size; i++) {
             typename ArrayTraits<T>::ElementType element;
@@ -268,7 +277,7 @@ private:
 
     template<typename TeslaType, typename T>
     void readArray(TeslaType, const char* name, T& value, ArrayCategory_UserDefinedArray) {
-        size_t size = read<uint32_t>(name);
+        size_t size = read<uint32>(name);
         ArrayTraits<T>::Adapter::clear(value);
         for (size_t i = 0; i < size; i++) {
             typename ArrayTraits<T>::ElementType element;
@@ -295,26 +304,26 @@ private:
         }
     }
 
-    uint64_t readVInt() {
-        uint64_t nVal = 0;
+    uint64 readVInt() {
+        uint64 nVal = 0;
         byte b = 0, noBits = 0;
         do {
-            if (noBits >= sizeof(uint64_t) * 8) // No more than 64 bits.
+            if (noBits >= sizeof(uint64) * 8) // No more than 64 bits.
                     {
                 throw DeserializationException(
                         "Invalid or corrupt serialized stream detected: invalid LEB128 value.");
             }
 
             b = static_cast<byte>(readByte());
-            nVal |= static_cast<uint64_t>((b & 0x7f)) << noBits;
+            nVal |= static_cast<uint64>((b & 0x7f)) << noBits;
             noBits += 7;
         } while (b & 0x80);
         return nVal;
     }
 
-    int64_t readZigZag() {
-        uint64_t n = readVInt();
-        return ((n >> 1) ^ -static_cast<int64_t>(n & 1));
+    int64 readZigZag() {
+        uint64 n = readVInt();
+        return ((n >> 1) ^ -static_cast<int64>(n & 1));
     }
 
     template<typename U, typename T>
@@ -323,7 +332,7 @@ private:
                 || (value > (std::numeric_limits<U>::max)())) {
             throw DeserializationException(
                     "Invalid or corrupt serialized stream detected: "
-                            "overflow/underflow when reading an int16_t value.");
+                            "overflow/underflow when reading an int16 value.");
         }
         return static_cast<U>(value);
     }

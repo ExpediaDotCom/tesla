@@ -1,12 +1,19 @@
-//==========================================================================
-//
-// Copyright (C) 2011, Expedia Inc.  All rights reserved.
-//
-// File:    SerializedBufferBuilder.h
-//
-// Desc:    Defines a builder of serialized buffers for unit testing.
-//
-//==========================================================================
+/*******************************************************************************
+ * Copyright (c) 2014 Expedia Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
+
 
 #pragma once
 
@@ -38,19 +45,19 @@ public:
         return UInt8_t(value, 1);
     }
 
-    SerializedBufferBuilder& UInt16_t(tesla::uint16_t value) {
+    SerializedBufferBuilder& UInt16_t(tesla::uint16 value) {
         WriteVInt(value);
 
         return *this;
     }
 
-    SerializedBufferBuilder& UInt32_t(tesla::uint32_t value) {
+    SerializedBufferBuilder& UInt32_t(tesla::uint32 value) {
         WriteVInt(value);
 
         return *this;
     }
 
-    SerializedBufferBuilder& UInt64_t(tesla::uint64_t value) {
+    SerializedBufferBuilder& UInt64_t(tesla::uint64 value) {
         WriteVInt(value);
 
         return *this;
@@ -64,20 +71,20 @@ public:
         return Int8_t(value, 1);
     }
 
-    SerializedBufferBuilder& Int16_t(tesla::int16_t value) {
-        WriteVInt(static_cast<tesla::uint16_t> ((value << 1) ^ (value >> 15)));
+    SerializedBufferBuilder& Int16_t(tesla::int16 value) {
+        WriteVInt(static_cast<tesla::uint16> ((value << 1) ^ (value >> 15)));
 
         return *this;
     }
 
-    SerializedBufferBuilder& Int32_t(tesla::int32_t value) {
-        WriteVInt(static_cast<tesla::uint32_t> ((value << 1) ^ (value >> 31)));
+    SerializedBufferBuilder& Int32_t(tesla::int32 value) {
+        WriteVInt(static_cast<tesla::uint32> ((value << 1) ^ (value >> 31)));
 
         return *this;
     }
 
-    SerializedBufferBuilder& Int64_t(tesla::int64_t value) {
-        WriteVInt(static_cast<tesla::uint64_t> ((value << 1) ^ (value >> 63)));
+    SerializedBufferBuilder& Int64_t(tesla::int64 value) {
+        WriteVInt(static_cast<tesla::uint64> ((value << 1) ^ (value >> 63)));
 
         return *this;
     }
@@ -144,27 +151,27 @@ public:
         return Int8_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::int16_t value) {
+    SerializedBufferBuilder& Write(tesla::int16 value) {
         return Int16_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::int32_t value) {
+    SerializedBufferBuilder& Write(tesla::int32 value) {
         return Int32_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::int64_t value) {
+    SerializedBufferBuilder& Write(tesla::int64 value) {
         return Int64_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::uint16_t value) {
+    SerializedBufferBuilder& Write(tesla::uint16 value) {
         return UInt16_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::uint32_t value) {
+    SerializedBufferBuilder& Write(tesla::uint32 value) {
         return UInt32_t(value);
     }
 
-    SerializedBufferBuilder& Write(tesla::uint64_t value) {
+    SerializedBufferBuilder& Write(tesla::uint64 value) {
         return UInt64_t(value);
     }
 
@@ -201,7 +208,7 @@ public:
     }
 
 private:
-    void WriteVInt(tesla::uint64_t value) {
+    void WriteVInt(tesla::uint64 value) {
         int count = 0;
 
         do {
