@@ -174,9 +174,11 @@ Add following dependencies to the ```pom.xml``` of the project.
    </dependency>
 ```
 
+In this example, we need Jackson as our generated JSON serialization code uses it as the JSON formatter. Apache ```commons-lang3``` is used to implement ```equals()``` and ```hash()``` method. 
+
 ### Say "Hello"
 
-Put following source code into ```src/main/java/com/mycompany/hello/HelloTesla.javad```.
+Put following source code into ```src/main/java/com/mycompany/hello/HelloTesla.java```.
 
 ```
 package com.mycompany.hello;
