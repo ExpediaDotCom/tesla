@@ -285,7 +285,7 @@ Our clients generally will write some source code to decode a binary message. Be
 
 Now, let's build a client application to parse this binary message. Instead of creating a client application, we just add another class to our ```hello``` project so that the jar can be used as both client and server.
 
-Create file ```src/main/java/com/mycompany/hello/HelloTesla.java``` with following source code.
+Create file ```src/main/java/com/mycompany/hello/HelloClient.java``` with following source code.
 
 ```
 package com.mycompany.hello;
