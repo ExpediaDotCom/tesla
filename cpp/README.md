@@ -1,10 +1,9 @@
 Tesla C++ API
 =========
 
-##Summary
+## Summary
 
 This documentation contains only C++ implementation specific information. For general information about Tesla and Tesla compiler, please refer [Tesla Specification](../specification.md) and [Telsa General Documentation](../README.md).
-
 
 ### Header only library
 
@@ -31,11 +30,27 @@ Tesla is optimized for both speed and size. The serialized object size is alread
 
 Tesla V2 C++ library only depends on STL (and boost/zlib if gzip is used). Following compilers have been proved working successfully. You will also need boost to build the unit tests because unit test code use boost.
 
-- Visual C++ 2008
+- Visual C++ 2008/2010
 - GCC 4.2
 
-Type Compatibility and Type Mapping
-------------------------------------
+## Installation
+
+Run following command lines in terminal
+
+```
+./configure
+make install
+```
+## Unit Test
+
+Tesla C++ library unit test requires ```boost``` and ```cppunit``` library. Please install ```boost``` and ```cppunit``` library if you haven't install them. Use following command to run Tesla unit tests. Compiling unit test may takes a while, please be patient.
+
+```
+./configure
+make check
+```
+
+## Type Compatibility and Type Mapping
 
 
 Tesla C++ API is very flexible. Most other serialization frameworks require user to use generated temporary objects. Generally, you will have to write mapping code to map your objects to/from these temporary objects. It's not only complex, but also affects performance because these temporary objects and mapping take CPU and memory resources. Tesla can serialize and deserialize C++, STL and user types directly without using generated intermediate objects. It can convert the user objects directly into Tesla format, or construct objects directly from serialized Tesla data. 
