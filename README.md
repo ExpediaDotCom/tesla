@@ -134,8 +134,9 @@ Run the Tesla compiler to generate Java source code. Please replace the ```<tesl
 ```
 java -jar <tesla-root>/compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar -o src/main/java -s com.mycompany.hello.Serializer hello.tml
 ```
+The above command line tells Tesla compiler to generate user objects from schema file ```hello.tml```, which defines a user object ```HelloMessage```. The ```-o``` option specifies the output directory where Tesla compiler will put the generated source code. In our example, we put the generated source code to standard Maven source code directory ```src/main/java```. The ```-s``` option gives name ```com.mycompany.hello.Serializer``` to the generated Tesla serializer. This serializer knows how to serialize objects defined in the schema. We will use it to serialize our ```HelloMessage``` object later.  
 
-Tesla compile will generates two Java source files:
+Tesla compile will generate following two Java source files:
 
 ```
 src/main/java/com/mycompany/hello/HelloMessage.java
@@ -212,6 +213,8 @@ public class HelloTesla extends AbstractHandler {
 }
 ```
 
+In above code, the method ```handle()``` will be called by Jetty server for every incoming HTTP request. We create a new ```HelloMessage``` object and set its ```greeting``` property to a string ```Hello Tesla!```, then we created a Tesla JSON writer by calling ```Serializer.newJsonReader()``` method with schema version ```hello v1.0``` (please consult [Tesla Specification](#spec) for more information about versioning). This serializer will write serialized data into the HTTP response body reprsented by an output stream returned from ```response.getOutputStream()```. After that, we call ```write()``` method on the JSON writer by passing the ```HelloMessage``` object to it. This is the actual step that serializes object into JSON and write it into HTTP response body. 
+
 Build and run the project with following commands: 
 
 ```
@@ -219,12 +222,10 @@ mvn clean install
 mvn exec:java -Dexec.mainClass="com.mycompany.hello.HelloTesla"
 ```
 
-If everything goes well, the hello world service should be ready. Now we can try to access the hello world service with web browser. Open URL http://localhost:8080/ in browser, you will get following JSON message.
+If everything goes well, the hello world service should be ready. Now we can try to access the hello world service with web browser. Open URL http://localhost:8080/ in a browser, you will get following JSON message.
 
 ```
-{
-	Greeting: "Hello Tesla!"
-}
+{"Greeting": "Hello Tesla!"}
 ```
 
 Switch To Binary Encoding
@@ -232,7 +233,7 @@ Switch To Binary Encoding
 
 So far we have tested our service with JSON encoding. Now let's switch to Tesla binary encoding. Binary encoding will improve service performance dramatically in a real world application.
 
-We called method ```Serializer.newJsonWriter()``` to create a JSON writer object that serializes ```HelloMessage``` object into JSON. Now we replace it with method ```Serializer.newBinaryWriter()```. This method will create a binary writer that can serialize objects in Tesla binary encoding. Now the file ```HelloTesla.java``` will looks like following:
+We called method ```Serializer.newJsonWriter()``` to create a JSON writer object that serializes ```HelloMessage``` object into JSON. Now we replace it with method ```Serializer.newBinaryWriter()```. This method will create a binary writer that can serialize objects in Tesla binary encoding instead. Now the file ```HelloTesla.java``` will looks like following:
 
 ```
 package com.mycompany.hello;
@@ -266,7 +267,7 @@ public class HelloTesla extends AbstractHandler {
 }
 ```
 
-Now let's compile and run our hello service again. After the service is started, we use ```wget``` tool to download the binary message and save it to a file ```greeting.tesla```. Run following command line in a terminal window. Or use a browser to open URL http://localhost:8080 and save the downloaded file into ```greeting.tesla```.
+Let's compile and run our hello service again. After the service is started, we use ```wget``` tool to download the binary message and save it to a file ```greeting.tesla```. Run following command line in a terminal window. Or use a browser to open URL http://localhost:8080 and save the downloaded file into ```greeting.tesla```.
 
 ```
 wget --output-document=greeting.tesla http://localhost:8080
@@ -279,11 +280,11 @@ Now we can inspect the binary message by a hex dumper. Run ```hexdump -v greetin
 000000d
 ```
 
-As you can see, the first byte is ```0x0C``` (12). It follows 12 bytes. 
+As you can see, the first byte is ```0x0C``` (12). It follows 12 bytes of UTF-8 encoded string ```Hello Tesla!```. For more information about Tesla binary encoding, please consult [Tesla Specificiation](#spec).
 
-Our clients generally will write some source code to decode a binary message. Before a client can decode a binary message, he will need to know the format of the message. In Tesla, we just share the schema file (TML) to our client. Client can run Tesla compiler generate their own code, possibly another programming language, to parse the binary messages. 
+Our clients generally will write some source code to decode a binary message. Before a client can decode a binary message, he will need to know the format of the message. In Tesla, we just share the schema file (TML) to our clients. Clients can run Tesla compiler to generate their own code, possibly in another programming language, to parse the binary messages. 
 
-Now, let's build a client application to parse this binary message. Instead of creating a client application, we just add another class to our ```hello``` project so that the jar can be used as both client and server.
+Now, let's build a client application to parse our binary message. To make it easier, we don't create a separate client project, instead, we just add another class to our ```hello``` project so that the jar can be used as both client and server.
 
 Create file ```src/main/java/com/mycompany/hello/HelloTesla.java``` with following source code.
 
@@ -353,9 +354,9 @@ Greeting from Tesla server: Hello Tesla!
 [INFO] ------------------------------------------------------------------------
 ```
 
-See, we got the greeting.
+Our hello client prints a line ```Greeting from Tesla server: Hello Tesla!```.
 
-Tesla Specification
+Tesla Specification<a name="spec"></a>
 ------------
 
 Please refer Tesla specification [here](specification.md).
