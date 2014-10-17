@@ -48,6 +48,3 @@ If you're just making a small change, don't worry about filing an issue first. U
 ## Code Style
 Sundeep, fill this!
 
-## Issues
-We use GitHub issues to track public bugs. Please ensure your description is
-clear and has sufficient instructions to be able to reproduce the issue.
