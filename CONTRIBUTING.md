@@ -41,7 +41,7 @@ If you're just making a small change, don't worry about filing an issue first. U
 1. Fork the repo and create your branch from `master`.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
-4. Ensure the unit test passes.
+4. Ensure the build successes and unit test passes (```mvn clean install```).
 5. Make sure your code lints.
 6. After your pull request is merged, you can safely delete your branch and pull the changes from the main (upstream) repository.
 
