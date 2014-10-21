@@ -19,11 +19,11 @@ with a fix.
 You can request a new feature by submitting an issue to our [GitHub Repository][github].  If you
 would like to implement a new feature then consider what kind of change it is:
 
-* **Major Changes** that you wish to contribute to the project should be discussed first on our
+* Major Changes that you wish to contribute to the project should be discussed first on our
 [dev mailing list](mailto:tesla@expedia.com) so that we can better coordinate our efforts, prevent
 duplication of work, and help you to craft the change so that it is successfully accepted into the
 project.
-* **Small Changes** can be crafted and submitted to the [GitHub Repository][github] as a Pull Request.
+* Small Changes can be crafted and submitted to the [GitHub Repository][github] as a Pull Request.
 
 ## <a name="docs"></a> Want a Doc Fix?
 If you want to help improve the docs, it's a good idea to let others know what you're working on to
