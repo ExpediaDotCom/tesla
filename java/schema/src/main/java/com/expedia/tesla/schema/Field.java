@@ -21,103 +21,121 @@
 
 package com.expedia.tesla.schema;
 
-import java.util.HashMap;
 import java.util.Map;
 
-public class Field {
+/**
+ * Represent a Tesla class field.  
+ * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ */
+public class Field implements Named {
 	protected String name;
 	protected String displayName;
 	protected Type type;
 	protected Map<String, String> attributes;
 	protected String description;
 
-	public Field() {
-	}
-
+	/**
+	 * Constructor.
+	 * 
+	 * @param name
+	 * 		the name of the field
+	 * @param displayName
+	 * 		the optional display name of the field, the value as {@code name} will be used if this is {@code null} 
+	 * @param type
+	 * 		the type of the field
+	 * @param attributes
+	 * 		optional user field attributes 
+	 * @param description
+	 * 		the description of the field
+	 */
 	public Field(String name, String displayName, Type type,
 			Map<String, String> attributes, String description) {
-		setName(name);
-		setDisplayName(displayName);
-		setType(type);
-		setAttributes(attributes);
-		setDescription(description);
+		this.name = name;
+		this.displayName = displayName;
+		this.type = type;
+		this.attributes = attributes;
+		this.description = description;
 	}
 
+	/**
+	 * Get the name of the field.
+	 */
 	public String getName() {
 		return this.name;
 	}
 
-	public void setName(String value) {
-		this.name = value;
-	}
-
+	/**
+	 * Get the display name of the field.
+	 */
 	public String getDisplayName() {
 		return this.displayName;
 	}
 
-	public void setDisplayName(String value) {
-		this.displayName = value;
-	}
-
+	/**
+	 * Get the type of the field.
+	 */
 	public Type getType() {
 		return this.type;
 	}
 
-	public void setType(Type value) {
-		this.type = value;
-	}
-
+	/**
+	 * Get the optional user field attributes.
+	 */
 	public Map<String, String> getAttributes() {
 		return this.attributes;
 	}
 
-	public void setAttributes(Map<String, String> attributes) {
-		this.attributes = attributes;
-	}
-
+	/**
+	 * Find field attribute by name.
+	 * 
+	 * @param name
+	 * 		the name of the field attribute
+	 * @return
+	 * 		the field attribute if found, otherwise, return {@code null}
+	 */
 	public String getAttribute(String name) {
 		return this.attributes == null ? null : this.attributes.get(name);
 	}
 
-	public void setAttribute(String name, String value) {
-		if (this.attributes == null) {
-			this.attributes = new HashMap<String, String>();
-		}
-		this.attributes.put(name, value);
-	}
-
+	/**
+	 * Get the property getter name.
+	 */
 	public String getGetterName() {
 		return getAttribute("getter");
 	}
 
-	public void setGetterName(String value) {
-		this.attributes.put("getter", value);
-	}
-
+	/**
+	 * Get the property setter name.
+	 */
 	public String getSetterName() {
-		return getAttribute("getter");
+		return getAttribute("setter");
 	}
 
-	public void setSetterName(String value) {
-		setAttribute("setter", value);
-	}
-
+	/**
+	 * Get the field description.
+	 */
 	public String getDescription() {
 		return this.description;
 	}
 
-	public void setDescription(String value) {
-		this.description = value;
-	}
-
+	/**
+	 * Determine if the field is optional.
+	 */
 	public boolean getIsOptional() {
 		return type instanceof Nullable;
 	}
 
+	/**
+	 * Determine if the field is a Tesla reference.
+	 */
 	public boolean getIsReference() {
 		return type instanceof Reference;
 	}
 
+	/**
+	 * Get the rank of the array if the field is a Tesla array. Otherwise, return 0.
+	 */
 	public int getRank() {
 		Type type = getType();
 		int rank = 0;
@@ -129,10 +147,16 @@ public class Field {
 		return rank;
 	}
 
+	/**
+	 * Determine if the field is a Tesla array.
+	 */
 	public boolean getIsArray() {
 		return type instanceof Array;
 	}
 
+	/**
+	 * Get field type name.
+	 */
 	@Deprecated
 	public String getTypeName() {
 		if (type instanceof Primitive) {

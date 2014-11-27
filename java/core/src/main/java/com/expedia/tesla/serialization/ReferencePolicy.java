@@ -32,8 +32,10 @@ package com.expedia.tesla.serialization;
  * @author Yunfei Zuo (yzuo@expedia.com)
  */
 public class ReferencePolicy {
-	private java.util.Map<java.lang.Class<?>, java.util.Map<?, Integer>> refWriteTable = new java.util.HashMap<Class<?>, java.util.Map<?, Integer>>();
-	private java.util.Map<java.lang.Class<?>, java.util.Map<Integer, ?>> refReadTable = new java.util.HashMap<java.lang.Class<?>, java.util.Map<Integer, ?>>();
+	private java.util.Map<java.lang.Class<?>, java.util.Map<Object, Integer>> refWriteTable = 
+			new java.util.HashMap<Class<?>, java.util.Map<Object, Integer>>();
+	private java.util.Map<java.lang.Class<?>, java.util.Map<Integer, Object>> refReadTable = 
+			new java.util.HashMap<java.lang.Class<?>, java.util.Map<Integer, Object>>();
 
 	/**
 	 * Check if an object with the same value has already been written. It will
@@ -52,18 +54,22 @@ public class ReferencePolicy {
 	 * 
 	 * @throws TeslaSerializationException
 	 */
-	public <T> int getOutputReferenceId(T value, Class<?> clzz) {
-		@SuppressWarnings("unchecked")
-		java.util.Map<T, Integer> e = (java.util.Map<T, Integer>) refWriteTable
-				.get(clzz);
+	public int getOutputReferenceId(Object value, Class<?> clzz) {
+		java.util.Map<Object, Integer> e = refWriteTable.get(clzz);
 		if (e == null) {
-			e = new java.util.HashMap<T, Integer>();
+			e = new java.util.HashMap<Object, Integer>();
 			refWriteTable.put(clzz, e);
 		}
 		Integer id = e.get(value);
 		if (id != null) {
 			return id;
 		} else {
+			if (e.size() >= Integer.MAX_VALUE) {
+				throw new IndexOutOfBoundsException("Too many distinct reference values for type " 
+						+ clzz.getCanonicalName()
+						+ ", enabling reference on the current field may not appropriate, please consider to disable "
+						+ "reference on it.");
+			}
 			int newId = e.size() + 1;
 			e.put(value, newId);
 			return -newId;
@@ -104,14 +110,14 @@ public class ReferencePolicy {
 	 * @param value
 	 *            The referred objects
 	 * @param classType
+	 * 			  The java.lang.Class<?> object that represents the type of the
+	 *            {@code value}.
 	 */
-	public <T> void putInputReference(int id, T value,
+	public void putInputReference(int id, Object value,
 			java.lang.Class<?> classType) {
-		@SuppressWarnings("unchecked")
-		java.util.Map<Integer, T> ids = (java.util.Map<Integer, T>) refReadTable
-				.get(classType);
+		java.util.Map<Integer, Object> ids = refReadTable.get(classType);
 		if (ids == null) {
-			ids = new java.util.HashMap<Integer, T>();
+			ids = new java.util.HashMap<Integer, Object>();
 			refReadTable.put(classType, ids);
 		}
 		if (id < 0) {

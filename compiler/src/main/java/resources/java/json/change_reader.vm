@@ -1,5 +1,5 @@
 ########################################################################################################################
-##  Context variable requiered
+##  Context variables required
 ##  1. schema
 ##  2. mapper 
 ##  3. deserialzerName
@@ -30,7 +30,8 @@
 
     public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!jn.isObject())
-            throw new AssertionError("BUG, not an object!");
+            throw new TeslaDeserializationException(String.format(
+            	"Invalid Tesla JSON object encoding, expect a JSON object for type \"$type.TypeId\"!"));
         com.fasterxml.jackson.databind.JsonNode vn;
 #foreach( $f in $type.AllFields )
 #set( $ftd = $mapper.getTypeDescriptor($f.Type))
@@ -114,7 +115,7 @@
             return ${enumName}.${entry.Name};
         }
 #end
-        throw new java.io.IOException(String.format(
+        throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
             "Invalid Enum value '%s' encountered when reading type id '$type.TypeId'", 
             value));
     }
@@ -129,8 +130,7 @@
             return jn.textValue();
         if (jn.isNull())
             return null;
-        // TODO: fix me
-        throw new java.io.IOException(String.format(
+        throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
                 "Unexpected type %d for (type id \"$type.TypeId\")", 
                 $tid)); 
     }
@@ -140,7 +140,8 @@
 #set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
     public $td.InterfaceName read${td.Symbol}($td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode jn) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!jn.isObject())
-            throw new AssertionError("BUG, not a reference object!");
+            throw new TeslaDeserializationException(String.format(
+            	"Invalid Tesla JSON reference encoding, expect a JSON object for type \"$type.TypeId\"!"));
 
         if (jn.has("@reference")) {
             int id = read${int32_desc.Symbol}(0, jn.findValue("@reference"));
@@ -151,7 +152,8 @@
             refPolicy.putInputReference(-id, value, ${clzzName}.class);
             return value;
         }
-        throw new AssertionError("BUG, not a reference object!");
+        throw new TeslaDeserializationException(String.format(
+        	"Invalid Tesla JSON reference encoding, expect a '@reference' or '@id' property for type \"$type.TypeId\"!"));
     }
 #end
 #if( $type.isPrimitive() )
@@ -181,7 +183,7 @@
 #elseif( $type.Name == "binary" )
         return jn.binaryValue();
 #else
-        wrong!
+        THIS IS A TEMPLATE BUG! Unexpected Tesla primitive type $type.Name! 
 #end  
     }
 #end

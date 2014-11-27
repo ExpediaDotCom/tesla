@@ -20,6 +20,10 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 /**
+ * This class is copied from java.io.ByteArrayOutputStream and removed the
+ * synchronized keyword from all methods in order to avoid synchronization cost. 
+ * IT IS NOT THREAD SAFE.
+ *
  * This class implements an no lock memory output stream in which the data is
  * written into a byte array. The buffer automatically grows as data is written
  * to it.

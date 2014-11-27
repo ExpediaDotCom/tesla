@@ -1,5 +1,5 @@
 ########################################################################################################################
-##  Context variable requiered
+##  Context variables required
 ##  1. schema
 ##  2. mapper 
 ##  3. serialzerName
@@ -76,8 +76,8 @@
 #set($etd = $mapper.getTypeDescriptor($type.ElementType))
     public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
         com.fasterxml.jackson.databind.node.ArrayNode jan = null;
-        for (int i = 0; i < Math.max(size(oldValue), size(newValue)); i++) {
-            com.fasterxml.jackson.databind.JsonNode jen = write${etd.Symbol}(get(oldValue, i), get(newValue, i));
+        for (int i = 0; i < Math.max(com.expedia.tesla.utils.ArrayUtils.size(oldValue), com.expedia.tesla.utils.ArrayUtils.size(newValue)); i++) {
+            com.fasterxml.jackson.databind.JsonNode jen = write${etd.Symbol}(com.expedia.tesla.utils.ArrayUtils.get(oldValue, i), com.expedia.tesla.utils.ArrayUtils.get(newValue, i));
             if (jen != null) {
                 if (jan == null) 
                     jan = NODE_FACTORY.arrayNode();
@@ -108,10 +108,7 @@
 #end
 #if( $type.isEnum()  )
     public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
-        if (oldValue == newValue)
-            return null;
-        else
-            return write${string_desc.Symbol}(oldValue.toString(), newValue.toString());
+        return (oldValue == newValue) ? null : write${string_desc.Symbol}(oldValue.toString(), newValue.toString());
     }
 #end
 #if( $type.isPoly() )
@@ -154,9 +151,7 @@
 #end
 #if( $type.isPrimitive() )
     public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($mapper.box($td.InterfaceName) oldValue, $mapper.box($td.InterfaceName) newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
-        if (oldValue == newValue 
-            || (oldValue != null && oldValue.equals(newValue)) 
-            || (newValue != null && newValue.equals(oldValue)))
+        if (oldValue == newValue || oldValue != null ? oldValue.equals(newValue) : newValue.equals(oldValue))
             return null;
             
 #if( $type.Name == "byte" )
@@ -184,69 +179,11 @@
 #elseif( $type.Name == "binary" )
         return NODE_FACTORY.binaryNode(newValue);
 #else
-        wrong!
+        THIS IS A TEMPLATE BUG! Unexpected Tesla primitive type $type.Name! 
 #end       
     }
 #end
 
 #end
 
-    private static <T> T get(java.util.List<T> v, int i) {
-        return v.get(i);
-    }
-    
-    private static <T> T get(T[] v, int i) {
-        return v[i];
-    }
-    
-    private static byte get(byte[] v, int i) {
-        return v[i];
-    }
-    private static short get(short[] v, int i) {
-        return v[i];
-    }
-    private static int get(int[] v, int i) {
-        return v[i];
-    }
-    private static long get(long[] v, int i) {
-        return v[i];
-    }
-    private static float get(float[] v, int i) {
-        return v[i];
-    }
-    private static double get(double[] v, int i) {
-        return v[i];
-    }
-    private static boolean get(boolean[] v, int i) {
-        return v[i];
-    }
-
-    private static <T> int size(java.util.List<T> v) {
-        return v.size();
-    }
-
-    private static <T> int size(T[] v) {
-        return v.length;
-    }
-    private static int size(byte[] v) {
-        return v.length;
-    }
-    private static int size(short[] v) {
-        return v.length;
-    }
-    private static int size(int[] v) {
-        return v.length;
-    }
-    private static int size(long[] v) {
-        return v.length;
-    }
-    private static int size(float[] v) {
-        return v.length;
-    }
-    private static int size(double[] v) {
-        return v.length;
-    }
-    private static int size(boolean[] v) {
-        return v.length;
-    }
     

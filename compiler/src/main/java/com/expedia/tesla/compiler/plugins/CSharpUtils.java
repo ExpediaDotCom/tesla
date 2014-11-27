@@ -71,7 +71,7 @@ public class CSharpUtils extends Util {
 		} else if (type.isReference()) {
 			return getTypeName(((Reference) type).getElementType());
 		} else {
-			throw new AssertionError("Unable to map type " + type.getTypeId());
+			throw new RuntimeException("Unable to map type " + type.getTypeId());
 		}
 	}
 
@@ -85,57 +85,38 @@ public class CSharpUtils extends Util {
 		if (rank < 1) {
 			return typeName;
 		} else if (rank == 1) {
-			return "List<" + typeName + ">";
+			return String.format("List<%s>", typeName);
 		} else {
-			return "List<" + getCSharpListType(typeName, rank - 1) + ">";
+			return String.format("List<%s>", getCSharpListType(typeName, rank - 1));
 		}
 	}
 
 	public String getWriteMethod(Field field) {
-		String method = "WriteObject";
-		String genericSuffix = "";
-
-		if (field.getRank() == 0) {
-			method = "Write";
-			if (field.getType() instanceof Enum) {
-				genericSuffix = "<" + getCSharpFieldTypeName(field) + ">";
-			}
-		} else {
-			if (field.getType() instanceof Primitive) {
-				method = "Write" + ((Primitive) field.getType()).getName();
-			} else {
-				if (field.getType() instanceof Enum) {
-					method = "WriteEnum";
-				}
-
-				genericSuffix = "<" + getCSharpFieldTypeName(field) + ">";
-			}
-			method += "Array";
-		}
-
-		method += genericSuffix;
-		return method;
+		return getReadWriteMethod(field, "Write");
 	}
 
 	public String getReadMethod(Field field) {
-		String method = "ReadObject";
-		String genericSuffix = "";
-
-		if (field.getType() instanceof Primitive) {
-			method = "Read" + ((Primitive) field.getType()).getName();
-		} else if (field.getType() instanceof Enum) {
-			method = "ReadEnum";
+		return getReadWriteMethod(field, "Read");
+	}
+	
+	private String getReadWriteMethod(Field field, String rw) {
+		if (field.getRank() == 0) {
+			// Non-array.
+			if (field.getType() instanceof Enum) {
+				return String.format("%s<%s>", rw, getCSharpFieldTypeName(field));
+			} else {
+				return rw;
+			}
+		} else {
+			// Arrays
+			if (field.getType() instanceof Primitive) {
+				return String.format("%s%sArray", rw, ((Primitive) field.getType()).getName());
+			} else if (field.getType() instanceof Enum) {
+				return String.format("%sEnum<%s>", rw, getCSharpFieldTypeName(field));
+			} else {
+				return String.format("%sObjectArray<%s>", rw, getCSharpFieldTypeName(field));
+			}
 		}
-
-		if (field.getRank() > 0) {
-			method += "Array";
-		}
-
-		if (!(field.getType() instanceof Primitive)) {
-			genericSuffix = "<" + getCSharpFieldTypeName(field) + ">";
-		}
-		method += genericSuffix;
-		return method;
 	}
 
 	public String escapeStringLiteral(String str) {

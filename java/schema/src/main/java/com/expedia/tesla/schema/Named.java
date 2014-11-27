@@ -13,35 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-package com.expedia.tesla.schema.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.expedia.tesla.schema;
 
 /**
- * Tell the Tesla compiler to skip the annotated property.
+ * Component with a name.
  * 
- * <p>
- * Example:
- * 
- * <pre>
- * 		{@literal @}SkipField
- * 		public String getAddress() {
- * 			return this.address;
- * 		}
- * 
- * 		public void setAddress(String address) {
- * 			this.address = address;
- * 		}
- * </pre>
- * 
- * @author yzuo
- * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
  */
-@Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-public @interface SkipField {
-
+public interface Named {
+	
+	/**
+	 * Get the name.
+	 */
+	String getName();
 }

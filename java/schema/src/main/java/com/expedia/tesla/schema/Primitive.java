@@ -24,7 +24,15 @@ package com.expedia.tesla.schema;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Primitive extends Type {
+/**
+ * Represents a predefined basic Tesla type.
+ * <p>
+ * Unlike any other types, Tesla {@code Primitive}s are singleton.
+ *  
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
+public class Primitive extends Type implements Named {
 	public static final Primitive BYTE = new Primitive("byte");
 	public static final Primitive INT16 = new Primitive("int16");
 	public static final Primitive INT32 = new Primitive("int32");
@@ -57,17 +65,20 @@ public class Primitive extends Type {
 	}
 
 	private Primitive(String name) {
-		setName(name);
+		this.name = name;
 	}
 
+	/**
+	 * Get the type name.
+	 */
+	@Override
 	public String getName() {
 		return this.name;
 	}
 
-	public void setName(String value) {
-		this.name = value;
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getTypeId() {
 		return getName();

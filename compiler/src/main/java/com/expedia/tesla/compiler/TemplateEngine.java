@@ -112,8 +112,8 @@ public class TemplateEngine {
 	protected VelocityContext createContext(Map<String, Object> variables) {
 		VelocityContext context = new VelocityContext();
 		if (variables != null) {
-			for (String varName : variables.keySet()) {
-				context.put(varName, variables.get(varName));
+			for (Map.Entry<String, Object> var : variables.entrySet()) {
+				context.put(var.getKey(), var.getValue());
 			}
 		}
 		return context;

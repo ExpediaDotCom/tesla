@@ -23,8 +23,7 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.Assert;
-import org.junit.Ignore;
+import static org.junit.Assert.*;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -35,8 +34,8 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/smoke.tml");
-		Assert.assertNotNull(schema);
-		Assert.assertTrue(schema.getVersion().getVersionNumber() == 0);
+		assertNotNull(schema);
+		assertTrue(schema.getVersion().getVersionNumber() == 0);
 	}
 
 	@Test
@@ -44,8 +43,8 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/versionname.tml");
-		Assert.assertNotNull(schema);
-		Assert.assertTrue(schema.getVersion().getName()
+		assertNotNull(schema);
+		assertTrue(schema.getVersion().getName()
 				.contains("#versionname#"));
 	}
 
@@ -54,8 +53,8 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/versionnumber.tml");
-		Assert.assertNotNull(schema);
-		Assert.assertTrue(schema.getVersion().getVersionNumber() > 1);
+		assertNotNull(schema);
+		assertTrue(schema.getVersion().getVersionNumber() > 1);
 	}
 
 	@Test
@@ -63,8 +62,8 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/namespace.tml");
-		Assert.assertNotNull(schema);
-		Assert.assertEquals("My", schema.getUserTypes().iterator().next()
+		assertNotNull(schema);
+		assertEquals("My", schema.getUserTypes().iterator().next()
 				.getNameSpace());
 	}
 
@@ -74,21 +73,21 @@ public class SchemaTest {
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/class.tml");
 		UserType[] types = schema.getUserTypes().toArray(new UserType[0]);
-		Assert.assertEquals(2, types.length);
+		assertEquals(2, types.length);
 
 		Class teslaClass1 = (Class) schema
 				.findType("com.expedia.tesla.automation.component.schema.TeslaClass1");
-		Assert.assertNotNull(teslaClass1);
-		Assert.assertEquals("com.expedia.tesla.automation.component.schema",
+		assertNotNull(teslaClass1);
+		assertEquals("com.expedia.tesla.automation.component.schema",
 				teslaClass1.getNameSpace());
-		Assert.assertTrue(teslaClass1.getName().contains("TeslaClass1"));
+		assertTrue(teslaClass1.getName().contains("TeslaClass1"));
 
 		Class teslaClass2 = (Class) schema
 				.findType("com.expedia.tesla.automation.component.schema.TeslaClass2");
-		Assert.assertNotNull(teslaClass2);
-		Assert.assertEquals("com.expedia.tesla.automation.component.schema",
+		assertNotNull(teslaClass2);
+		assertEquals("com.expedia.tesla.automation.component.schema",
 				teslaClass2.getNameSpace());
-		Assert.assertTrue(teslaClass2.getName().contains("TeslaClass2"));
+		assertTrue(teslaClass2.getName().contains("TeslaClass2"));
 	}
 
 	@Test
@@ -99,10 +98,10 @@ public class SchemaTest {
 
 		com.expedia.tesla.schema.Class extendedClass = (com.expedia.tesla.schema.Class) schema
 				.findType("com.expedia.tesla.automation.component.schema.ExtendClass");
-		Assert.assertNotNull(extendedClass);
+		assertNotNull(extendedClass);
 		List<Field> fields = extendedClass.getAllFields();
 
-		Assert.assertEquals(2, fields.size());
+		assertEquals(2, fields.size());
 	}
 
 	@Test
@@ -113,10 +112,10 @@ public class SchemaTest {
 
 		com.expedia.tesla.schema.Class extendedClass = (com.expedia.tesla.schema.Class) schema
 				.findType("com.expedia.tesla.automation.component.schema.ExtendClass");
-		Assert.assertNotNull(extendedClass);
+		assertNotNull(extendedClass);
 		List<Field> fields = extendedClass.getAllFields();
 
-		Assert.assertEquals(3, fields.size());
+		assertEquals(3, fields.size());
 	}
 
 	@Test
@@ -135,15 +134,15 @@ public class SchemaTest {
 				Primitive.DOUBLE, Primitive.BINARY, Primitive.STRING };
 		assert (expectedFieldNameList.length == expectedTypeList.length);
 
-		Assert.assertTrue(types.iterator().next().isClass());
+		assertTrue(types.iterator().next().isClass());
 		Class class1 = (Class) types.iterator().next();
 
 		for (int i = 0; i < expectedFieldNameList.length; i++) {
 			String fieldName = expectedFieldNameList[i] + "Field";
 			Field field = class1.findField(fieldName);
-			Assert.assertNotNull(field);
-			Assert.assertEquals(fieldName, field.getName());
-			Assert.assertEquals(expectedTypeList[i], field.getType());
+			assertNotNull(field);
+			assertEquals(fieldName, field.getName());
+			assertEquals(expectedTypeList[i], field.getType());
 		}
 	}
 
@@ -155,10 +154,10 @@ public class SchemaTest {
 
 		Collection<UserType> types = schema.getUserTypes();
 
-		Assert.assertTrue(types.iterator().next().isClass());
+		assertTrue(types.iterator().next().isClass());
 		Class class1 = (Class) types.iterator().next();
 		List<Field> fields = class1.getAllFields();
-		Assert.assertEquals("FieldDisplayName", fields.get(0).getDisplayName());
+		assertEquals("FieldDisplayName", fields.get(0).getDisplayName());
 	}
 
 	@Test
@@ -169,13 +168,13 @@ public class SchemaTest {
 
 		Collection<UserType> types = schema.getUserTypes();
 
-		Assert.assertTrue(types.iterator().next().isClass());
+		assertTrue(types.iterator().next().isClass());
 		Class class1 = (Class) types.iterator().next();
 
-		Assert.assertTrue(class1.getName().contains("TeslaClass"));
+		assertTrue(class1.getName().contains("TeslaClass"));
 
 		for (Field field : class1.getAllFields()) {
-			Assert.assertTrue(((Field) field).getIsOptional());
+			assertTrue(((Field) field).getIsOptional());
 		}
 	}
 
@@ -187,13 +186,13 @@ public class SchemaTest {
 
 		Collection<UserType> types = schema.getUserTypes();
 
-		Assert.assertTrue(types.iterator().next().isClass());
+		assertTrue(types.iterator().next().isClass());
 		Class class1 = (Class) types.iterator().next();
-		Assert.assertTrue(class1.getName().contains("TeslaClass"));
+		assertTrue(class1.getName().contains("TeslaClass"));
 
 		for (Field field : class1.getAllFields()) {
-			Assert.assertTrue(((Field) field).getIsArray());
-			Assert.assertEquals(2, ((Field) field).getRank());
+			assertTrue(((Field) field).getIsArray());
+			assertEquals(2, ((Field) field).getRank());
 		}
 	}
 
@@ -202,7 +201,7 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/casesensitiveclass.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
@@ -210,7 +209,7 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/casesensitivefieldsname.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
@@ -218,7 +217,7 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/casesinsensitivefieldstype.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
@@ -226,7 +225,7 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/selfrefclass.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
@@ -234,7 +233,7 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/circularrefclass.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
@@ -242,27 +241,29 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/samefieldnametypename.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 	}
 
 	@Test
 	public void schemaEnumTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/enum.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 
 		Collection<UserType> types = schema.getUserTypes();
 
-		Assert.assertTrue(types.iterator().next().isEnum());
+		assertTrue(types.iterator().next().isEnum());
 		Enum enumType = (Enum) types.iterator().next();
 
-		Assert.assertNotNull(enumType);
+		assertNotNull(enumType);
 
-		List<EnumEntry> enumEntries = enumType.getEntries();
-		Assert.assertEquals(3, enumEntries.size());
+		Collection<EnumEntry> enumEntries = enumType.getEntries();
+		assertEquals(3, enumEntries.size());
 
-		for (int i = 0; i < enumEntries.size(); i++) {
-			EnumEntry enumEntry = (EnumEntry) enumEntries.get(i);
-			Assert.assertTrue(i - 1 == enumEntry.getValue());
+		// enum value start from -1
+		int i = 0;
+		for (EnumEntry enumEntry : enumEntries) {
+			assertEquals(i-1, enumEntry.getValue());
+			i++;
 		}
 	}
 
@@ -272,19 +273,19 @@ public class SchemaTest {
 		Schema schema = parseSchema("src/test/resources/schemahash1.tml");
 		Schema schema2 = parseSchema("src/test/resources/schemahash2.tml");
 
-		Assert.assertNotSame(schema.getVersion().getSchemaHash(), schema2
+		assertNotSame(schema.getVersion().getSchemaHash(), schema2
 				.getVersion().getSchemaHash());
 	}
 
 	@Test
 	public void schemaReferenceTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/reference.tml");
-		Assert.assertNotNull(schema);
+		assertNotNull(schema);
 
 		Class message = (Class) schema
 				.findType("com.expedia.tesla.automation.teslacompiler.reference.Message");
 		for (Field member : message.getFields()) {
-			Assert.assertTrue(member.getIsReference());
+			assertTrue(member.getIsReference());
 		}
 	}
 
@@ -292,25 +293,25 @@ public class SchemaTest {
 	@Test(expected = TeslaSchemaException.class)
 	public void schemaVersionNoNameTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/negative/versionnoname.tml");
-		Assert.assertNull(schema);
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)
 	public void schemaMultipleNamespaceTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/negative/multiplenamespace.tml");
-		Assert.assertNull(schema);
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)
 	public void schemaUnsupportedFieldTypeTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/negative/unsupportedfieldtype.tml");
-		Assert.assertNull(schema);
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)
 	public void schemaDuplicateExtendsTest() throws Exception {
 		Schema schema = parseSchema("src/test/resources/negative/duplicateextendsclass.tml");
-		Assert.assertNull(schema);
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)
@@ -318,14 +319,13 @@ public class SchemaTest {
 			TeslaSchemaException, NoSuchAlgorithmException, SAXException,
 			IOException, ParserConfigurationException {
 		Schema schema = parseSchema("src/test/resources/negative/nonamespacename.tml");
-		Assert.assertNull(schema);
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)
-	@Ignore("un-supported now")
 	public void schemaDiamondExtendsClassTest() throws Exception {
-		Schema schema = parseSchema("src/test/resources/diamondextendsclass.tml");
-		Assert.assertNull(schema);
+		Schema schema = parseSchema("src/test/resources/negative/diamondextendsclass.tml");
+		assertNull(schema);
 	}
 
 	@Test(expected = TeslaSchemaException.class)

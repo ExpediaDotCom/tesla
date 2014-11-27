@@ -71,7 +71,7 @@ public final class BitConverter {
 			byte[] vb = v.getBytes("UTF-8");
 			System.arraycopy(vb, 0, buf, 4, vb.length);
 		} catch (UnsupportedEncodingException e) {
-			throw new AssertionError("NO UTF-8");
+			throw new RuntimeException("NO UTF-8");
 		}
 		return buf;
 	}
@@ -81,7 +81,7 @@ public final class BitConverter {
 		try {
 			return new String(data, offset + 4, length, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new AssertionError("NO UTF-8");
+			throw new RuntimeException("NO UTF-8");
 		}
 	}
 

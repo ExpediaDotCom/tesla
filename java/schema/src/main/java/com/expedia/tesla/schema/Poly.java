@@ -13,35 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- * Reference.java
- * 
- * This file is generated code by Tesla compiler. Please don't edit. 
- */
 
 package com.expedia.tesla.schema;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
+/**
+ * Represent a Tesla {@code Poly} object. A Tesla {@code Poly} object is a place holder for an value that can be one of
+ * the types listed in the {@code Poly} concrete type list. It is similar to C++ union or variant.
+ * <p>
+ * Example:
+ * <p>
+ * <ul>
+ * 	<li>{@code ploy<int,string>}: the value can be {@code int} or {@code String}.</li>
+ *  <li>{@code ploy<Foo,Bar>}: the value can be object of type {@code Foo} or {@code Bar}.</li>
+ *  <li>{@code ploy<Foo,Bar,int>}: the value can be object of type {@code Foo}, or type of {@code Bar}, or even 
+ *  {@code int}.</li>
+ * </ul>
+ * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
 public class Poly extends Type {
+	
+	/**
+	 * A list of possible types the current value can be.
+	 */
 	protected java.util.List<Type> elementTypes;
 
-	public Poly() {
-	}
-
+	/**
+	 * Constructor.
+	 * 
+	 * @param elementTypes
+	 * 		A list of possible types the current value can be
+	 */
 	public Poly(List<Type> elementTypes) {
-		setElementTypes(elementTypes);
+		this.elementTypes = elementTypes;
 	}
 
+	/**
+	 * Get a list of possible types the current value can be.
+	 * 
+	 * @return
+	 * 		A list of possible types the current value can be
+	 */
 	public java.util.List<Type> getElementTypes() {
 		return this.elementTypes;
-	}
-
-	public void setElementTypes(java.util.List<Type> value) {
-		this.elementTypes = value;
 	}
 
 	/**
@@ -53,32 +74,37 @@ public class Poly extends Type {
 	 * @return All possible concrete types.
 	 */
 	public Collection<Type> getConcreteTypeList(Schema schema) {
-		Set<Type> types = new TreeSet<Type>();
+		Set<Type> types = new HashSet<Type>();
 		for (Type t : getElementTypes()) {
-			if (!t.isClass() || !((Class) t).isAbstract()) {
-				types.add(t);
-			}
-			for (Type dt : schema.getDerivedTypes(t, false)) {
-				if (!dt.isClass() || ((Class) dt).isAbstract()) {
+			if (t.isClass()) {
+				if (!((Class) t).isAbstract()) {
+					types.add(t);
+				}
+				for (Type dt : schema.getDerivedTypes(t, false)) {
 					types.add(dt);
 				}
+			} else {
+				types.add(t);
 			}
 		}
 
 		return types;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getTypeId() {
-		String s = "";
-		boolean flag = false;
-		for (Type t : getElementTypes()) {
-			if (flag) {
-				s += ",";
-			}
-			s += t.getTypeId();
-			flag = true;
+		StringBuilder sb = new StringBuilder();
+		sb.append("poly<");
+		Iterator<Type> itr = getElementTypes().iterator();
+		sb.append(itr.next().getTypeId());
+		while (itr.hasNext()) {
+			sb.append(",");
+			sb.append(itr.next().getTypeId());
 		}
-		return "poly<" + s + ">";
+		sb.append(">");
+		return sb.toString();
 	}
 }

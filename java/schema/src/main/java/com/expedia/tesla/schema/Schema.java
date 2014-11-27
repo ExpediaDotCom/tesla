@@ -21,10 +21,12 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
 
@@ -66,24 +68,13 @@ import com.expedia.tesla.SchemaVersion;
  */
 public class Schema {
 
-	public static final String TYPE_ID_PATTERN = "((?<=<)|(?=<))|((?<=>)|(?=>))|((?<=\\[)|(?=\\[))|((?<=\\])|(?=\\]))|((?<=,)|(?=,))";
-	public static final java.util.Map<String, Type> PRIMITIVES = new java.util.HashMap<String, Type>();
-
-	static {
-		PRIMITIVES.put(Primitive.BYTE.getTypeId(), Primitive.BYTE);
-		PRIMITIVES.put(Primitive.INT16.getTypeId(), Primitive.INT16);
-		PRIMITIVES.put(Primitive.INT32.getTypeId(), Primitive.INT32);
-		PRIMITIVES.put(Primitive.INT64.getTypeId(), Primitive.INT64);
-		PRIMITIVES.put(Primitive.UINT16.getTypeId(), Primitive.UINT16);
-		PRIMITIVES.put(Primitive.UINT32.getTypeId(), Primitive.UINT32);
-		PRIMITIVES.put(Primitive.UINT64.getTypeId(), Primitive.UINT64);
-		PRIMITIVES.put(Primitive.BOOLEAN.getTypeId(), Primitive.BOOLEAN);
-		PRIMITIVES.put(Primitive.FLOAT.getTypeId(), Primitive.FLOAT);
-		PRIMITIVES.put(Primitive.DOUBLE.getTypeId(), Primitive.DOUBLE);
-		PRIMITIVES.put(Primitive.STRING.getTypeId(), Primitive.STRING);
-		PRIMITIVES.put(Primitive.BINARY.getTypeId(), Primitive.BINARY);
-	}
-
+	/**
+	 * The Regex pattern used to split Tesla type id string into tokens.
+	 */
+	public static final String TYPE_ID_TOKENIZER_PATTERN = 
+			"((?<=<)|(?=<))|((?<=>)|(?=>))|((?<=\\[)|(?=\\[))|((?<=\\])|(?=\\]))|((?<=,)|(?=,))";
+	private static final Pattern COMPILED_TYPE_ID_PATTERN = Pattern.compile(TYPE_ID_TOKENIZER_PATTERN);
+	
 	protected SchemaVersion version;
 	protected java.util.Map<String, Type> typeMap = new java.util.HashMap<String, Type>();
 
@@ -203,7 +194,7 @@ public class Schema {
 	public Collection<Type> getDerivedTypes(Type baseType,
 			boolean directOnly) {
 		if (!baseType.isClass()) {
-			return null;
+			return Collections.emptyList();
 		}
 		java.util.Map<Type, Set<Type>> derivedTypeMap = createDerivedMap();
 		return getDerivedTypes(baseType, directOnly, derivedTypeMap);
@@ -216,7 +207,7 @@ public class Schema {
 			return drivedTypes;
 		}
 
-		Set<Type> indirectDerivedTypes = new TreeSet<Type>();
+		Set<Type> indirectDerivedTypes = new HashSet<Type>();
 		for (Type t : drivedTypes) {
 			indirectDerivedTypes.addAll(getDerivedTypes(t, false,
 					derivedTypeMap));
@@ -226,10 +217,10 @@ public class Schema {
 	}
 
 	private java.util.Map<Type, Set<Type>> createDerivedMap() {
-		java.util.Map<Type, Set<Type>> derivedTypeMap = new java.util.TreeMap<Type, Set<Type>>();
+		java.util.Map<Type, Set<Type>> derivedTypeMap = new java.util.HashMap<Type, Set<Type>>();
 		for (Type t : typeMap.values()) {
 			if (t.isClass()) {
-				derivedTypeMap.put(t, new TreeSet<Type>());
+				derivedTypeMap.put(t, new HashSet<Type>());
 			}
 		}
 		for (Type t : typeMap.values()) {
@@ -244,7 +235,7 @@ public class Schema {
 	}
 
 	public static class SchemaBuilder extends Schema {
-		
+				
 		public Schema build() {
 			Schema schema = new Schema();
 			schema.typeMap = this.typeMap;
@@ -258,164 +249,147 @@ public class Schema {
 				return t;
 			}
 
-			String[] tokens = id.split(TYPE_ID_PATTERN);
-			return addType(new PeekIterator<String>(Arrays.asList(tokens)
-					.iterator()));
+			String[] tokens = COMPILED_TYPE_ID_PATTERN.split(id);
+			return addType(new PeekIterator<String>(Arrays.asList(tokens).iterator()));
 		}
 
 		private Type addType(PeekIterator<String> itr)
 				throws TeslaSchemaException {
-			if (!itr.hasNext())
-				return null;
+			return Parser.add(itr, this);
+		}
 
-			String token = itr.next();
-			if (PRIMITIVES.containsKey(token)) {
-				return cacheType(PRIMITIVES.get(token));
-			} else if (token.equals("class")) {
-				return addClass(itr);
-			} else if (token.equals("enum")) {
-				return addEnum(itr);
-			} else if (token.equals("array")) {
-				return addArray(itr);
-			} else if (token.equals("nullable")) {
-				return addNullable(itr);
-			} else if (token.equals("poly")) {
-				return addPoly(itr);
-			} else if (token.equals("reference")) {
-				return addReference(itr);
-			} else if (token.equals("map")) {
-				return addMap(itr);
-			} else {
-				throw new TeslaSchemaException(
-						String.format(
-								"Type '%s' is not defined. Do you mean 'class<%s>' or 'enum<%s>'?",
-								token, token, token));
+		private static abstract class Parser {
+			protected static final java.util.Map<String, Parser> PARSERS = new HashMap<>();
+			
+			static {
+				for (final Primitive t : Primitive.ALL_PRIMITIVES) {
+					PARSERS.put(t.getTypeId(), new Parser(){
+						@Override
+						protected Type parse(PeekIterator<String> itr, 
+								SchemaBuilder builder) throws TeslaSchemaException {
+							return t;
+						}
+						@Override
+						protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+								String containerTypeId) throws TeslaSchemaException {
+							return t;
+						}
+					});
+				}
+				PARSERS.put("class", new Parser(){
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						return new Class(itr.next());
+					}
+				});
+				PARSERS.put("enum", new Parser(){
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						return new Enum(itr.next());
+					}
+				});
+				PARSERS.put("nullable", new Parser(){
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						return new Nullable(Parser.add(itr, builder));
+					}
+				});
+				PARSERS.put("reference", new Parser(){
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						return new Reference(Parser.add(itr, builder));
+					}
+				});
+				PARSERS.put("array", new Parser() {
+						@Override
+						protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+								String containerTypeId) throws TeslaSchemaException {
+							Type elementType = Parser.add(itr, builder);
+							return new Array(elementType, containerTypeId);
+						}
+				});
+				PARSERS.put("map", new Parser() {
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						Type keyType = Parser.add(itr, builder);
+						if (!",".equals(itr.next())) {
+							throw new TeslaSchemaException("Invalid type id, expect ','");
+						}
+						Type valueType = Parser.add(itr, builder);
+						
+						return new Map(keyType, valueType, containerTypeId);
+					}
+
+				});
+				PARSERS.put("poly", new Parser(){
+					@Override
+					protected Type parseInternal(PeekIterator<String> itr, SchemaBuilder builder, 
+							String containerTypeId) throws TeslaSchemaException {
+						List<Type> elementTypes = new ArrayList<Type>();
+						while (true) {
+							elementTypes.add(Parser.add(itr, builder));
+							if (",".equals(itr.peek())) {
+								itr.next();
+							} else {
+								break;
+							}
+						};
+						return new Poly(elementTypes);
+					}
+				});
 			}
-		}
+			
+			public static Type add(PeekIterator<String> itr, SchemaBuilder builder) throws TeslaSchemaException {
+				if (!itr.hasNext())
+					return null;
 
-		private Type addClass(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			if (!itr.next().equals("<"))
-				throw new TeslaSchemaException("");
-			String name = itr.next();
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("");
-			Class c = new Class();
-			c.setName(name);
-			return cacheType(c);
-		}
+				String token = itr.next();
+				Parser parser = PARSERS.get(token);
+				if (parser == null) {
+					throw new TeslaSchemaException(String.format(
+						"Type '%s' is not defined. Do you mean 'class<%s>' or 'enum<%s>'?",
+						token, token, token));
+				}
+				return builder.cacheType(parser.parse(itr, builder));
+			}
+			
+			protected Type parse(PeekIterator<String> itr, SchemaBuilder builder) throws TeslaSchemaException {
+				String containerTypeId = readContainerTypeId(itr);
+				String token = itr.next();
+				if (!"<".equals(token))
+					throw new TeslaSchemaException("Invalid type id, expect '<'");
+				Type t = parseInternal(itr, builder, containerTypeId);
+				if (!">".equals(itr.next()))
+					throw new TeslaSchemaException("Invalid map id, expect '>'");
 
-		private Type addEnum(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			if (!itr.next().equals("<"))
-				throw new TeslaSchemaException("");
-			String name = itr.next();
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("");
-			Enum e = new Enum();
-			e.setName(name);
-			return cacheType(e);
-		}
-
-		private Type addNullable(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			if (!itr.next().equals("<"))
-				throw new TeslaSchemaException("");
-			Type elementType = addType(itr);
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("");
-			Nullable t = new Nullable();
-			t.setElementType(elementType);
-			return cacheType(t);
-		}
-
-		private Type addReference(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			if (!itr.next().equals("<"))
-				throw new TeslaSchemaException("");
-			Type elementType = addType(itr);
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("");
-			Reference t = new Reference();
-			t.setElementType(elementType);
-			return cacheType(t);
-		}
-
-		private Type addArray(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			String containerTypeId = null;
-			String token = itr.next();
-			if (token.equals("[")) {
-				containerTypeId = "";
-				do {
-					token = itr.next();
-					if (token.equals("]")) {
+				return t;
+			}
+			
+			private String readContainerTypeId(PeekIterator<String> itr) {
+				String token = itr.peek();
+				if ("[".equals(token)) {
+					StringBuilder sb = new StringBuilder();
+					itr.next();
+					do {
 						token = itr.next();
-						break;
-					}
-					containerTypeId += token;
-				} while (true);
+						if ("]".equals(token)) {
+							break;
+						}
+						sb.append(token);
+					} while (true);
+					return sb.toString();
+				} else {
+					return null;
+				}
 			}
-			if (!token.equals("<"))
-				throw new TeslaSchemaException("" + token);
-			Type elementType = addType(itr);
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("");
-			Array t = new Array();
-			t.setElementType(elementType);
-			t.setExtraTypeId(containerTypeId);
-			return cacheType(t);
-		}
-
-		private Type addMap(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			String containerTypeId = null;
-			String token = itr.peek();
-			if (token.equals("[")) {
-				itr.next();
-				containerTypeId = "";
-				do {
-					token = itr.next();
-					if (token.equals("]")) {
-						break;
-					}
-					containerTypeId += token;
-				} while (true);
-			}
-			token = itr.next();
-			if (!token.equals("<"))
-				throw new TeslaSchemaException("Invalid map id, expect '<'");
-			Type keyType = addType(itr);
-			if (!itr.next().equals(",")) {
-				throw new TeslaSchemaException("Invalid map id, expect ','");
-			}
-			Type valueType = addType(itr);
-			if (!itr.next().equals(">"))
-				throw new TeslaSchemaException("Invalid map id, expect '>'");
-			Map t = new Map();
-			t.setExtraTypeId(containerTypeId);
-			t.setKeyType(keyType);
-			t.setValueType(valueType);
-			return cacheType(t);
-		}
-
-		private Type addPoly(PeekIterator<String> itr)
-				throws TeslaSchemaException {
-			if (!itr.next().equals("<"))
-				throw new TeslaSchemaException("");
-			List<Type> elementTypes = new ArrayList<Type>();
-			Type elementType = null;
-			String token = null;
-			do {
-				elementType = addType(itr);
-				elementTypes.add(elementType);
-				token = itr.next();
-			} while (token.equals(","));
-			if (!token.equals(">"))
-				throw new TeslaSchemaException("");
-			Poly t = new Poly();
-			t.setElementTypes(elementTypes);
-			return cacheType(t);
+			
+			protected abstract Type parseInternal(PeekIterator<String> itr, 
+					SchemaBuilder builder, String containerTypeId) throws TeslaSchemaException;
 		}
 
 		private Type cacheType(Type type) {
@@ -433,51 +407,23 @@ public class Schema {
 		}
 
 		void validate() throws TeslaSchemaException {
-			// check if there are undefined user types
 			for (UserType type : getUserTypes()) {
+				// check if there are undefined user types
 				if (!type.isDefined()) {
 					throw new TeslaSchemaException(String.format(
 							"Undefined user type '%s'", type.getTypeId()));
 				}
-			}
-
-			// duplicated fields?
-			for (UserType type : getUserTypes()) {
+				
+				// Field uniqueness is already ensured by define() method. However, the field uniqueness across 
+				// the class hierarchy still needs to be check.
 				if (type instanceof Class) {
-					validateClass((Class) type);
-				} else {
-					validateEnum((Enum) type);
-				}
-			}
-		}
-
-		private void validateEnum(Enum type) throws TeslaSchemaException {
-			Set<String> entryNames = new HashSet<>();
-			for (EnumEntry entry : type.getEntries()) {
-				if (entryNames.contains(entry.getName())) {
-					throw new TeslaSchemaException(String.format(
-							"Duplicated enum value '%s' defined in '%s'",
-							entry.getName(), type.getTypeId()));
-				} else {
-					entryNames.add(entry.getName());
-				}
-			}
-		}
-
-		private void validateClass(Class type) throws TeslaSchemaException {
-			List<Field> inheritedFields = type.getInheritedFields();
-			List<Field> fields = type.getFields();
-			Set<String> fieldNames = new HashSet<>();
-			for (Field field : inheritedFields) {
-				fieldNames.add(field.getName());
-			}
-			for (Field field : fields) {
-				if (fieldNames.contains(field.getName())) {
-					throw new TeslaSchemaException(String.format(
-							"Duplicated field '%s' defined in '%s'",
-							field.getName(), type.getTypeId()));
-				}
-				fieldNames.add(field.getName());
+					String name = UserType.findDuplication(((Class)type).getAllFields());
+					if (name != null) {
+						throw new TeslaSchemaException(String.format(
+								"Field '%s' is redefined in the hierarchy path of class %s.",
+								name, type.getName()));
+					}
+				} 
 			}
 		}
 	}

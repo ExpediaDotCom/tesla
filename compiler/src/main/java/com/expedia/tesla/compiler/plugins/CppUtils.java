@@ -28,32 +28,35 @@ import com.expedia.tesla.schema.Type;
  * 
  */
 public class CppUtils extends Util {
+	
+	
 	public String getTeslaTypeTag(Field field) {
-		String tag = "TeslaType_";
+		StringBuilder tagBuilder = new StringBuilder("TeslaType_");
 		Type type = field.getType();
 		if (type instanceof Primitive) {
-			tag += ((Primitive) type).getName();
+			tagBuilder.append(((Primitive) type).getName());
 		} else if (type instanceof Class) {
-			tag += "Object";
+			tagBuilder.append("Object");
 		} else if (type instanceof Enum) {
-			tag += "Enum";
+			tagBuilder.append("Enum");
 		}
 
 		if (field.getIsReference()) {
-			tag += "Reference";
+			tagBuilder.append("Reference");
 		}
 
 		if (field.getIsArray()) {
-			tag += "Array";
+			tagBuilder.append("Array");
 			if (field.getRank() > 1) {
-				tag += field.getRank() + "D";
+				tagBuilder.append(field.getRank());
+				tagBuilder.append("D");
 			}
 		}
 
 		if (field.getIsOptional()) {
-			tag += "Nullable";
+			tagBuilder.append("Nullable");
 		}
 
-		return tag;
+		return tagBuilder.toString();
 	}
 }

@@ -70,10 +70,7 @@ public class CppTypeMapper {
 
 		if (t.isPrimitive()) {
 			CppTypeDescriptor td = PRIM_DESCRIPTORS.get(t);
-			if (td == null)
-				throw new AssertionError(
-						"BUG! missing a primitive type mapping '"
-								+ t.getTypeId() + "'");
+			assert td != null : "BUG! missing a primitive type mapping '" + t.getTypeId() + "'";
 			return td;
 		}
 
@@ -132,10 +129,10 @@ public class CppTypeMapper {
 
 			return new CppTypeDescriptor(t, symbol(t), String.format(
 					"boost::variant<%s >",
-					new Util().commaSeparate(elementCppTypeNames)));
+					Util.commaSeparate(elementCppTypeNames)));
 		}
 
-		throw new AssertionError(String.format("unkonw type '%s'", t));
+		throw new AssertionError(String.format("unkonwn type '%s'", t));
 	}
 
 	public String symbol(Type t) {

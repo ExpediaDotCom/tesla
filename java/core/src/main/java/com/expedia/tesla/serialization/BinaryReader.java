@@ -31,6 +31,7 @@ import com.expedia.tesla.utils.Unsigned;
  * specification.
  * 
  * @author Yunfei Zuo (yzuo@expedia.com)
+ * @see BinaryWrier
  */
 public class BinaryReader implements TeslaReader {
 
@@ -40,6 +41,9 @@ public class BinaryReader implements TeslaReader {
 
 	private SchemaVersion version;
 	private InputStream in;
+	
+	// byteBuffer and bytes are reused for reading integer values. byteBuffer holds the last read binary data while 
+	// bytes represents its size in byte.
 	private byte[] byteBuffer = new byte[8];
 	private int bytes;
 
@@ -341,7 +345,9 @@ public class BinaryReader implements TeslaReader {
 	public long readUInt64(String name) throws IOException,
 			TeslaDeserializationException {
 		final BigInteger value = this.readVIntBig();
-		assert !Unsigned.isInvalidUInt64(value);
+		if (Unsigned.isInvalidUInt64(value)) {
+			throw new TeslaDeserializationException(CORRUPT_STREAM);
+		}
 		return value.longValue();
 	}
 

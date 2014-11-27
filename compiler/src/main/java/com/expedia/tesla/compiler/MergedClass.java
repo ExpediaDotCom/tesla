@@ -18,12 +18,11 @@ package com.expedia.tesla.compiler;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.schema.Array;
@@ -43,20 +42,20 @@ import com.expedia.tesla.schema.Type;
  * 
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>
  */
-public class MergedClass {
+public class MergedClass extends Class {
 	private String name;
 	private List<String> baseTypeNames = new ArrayList<String>();
 	private List<Field> fields;
 	private List<Field> inheritedFields;
 	private List<Field> allFields;
-	private Map<SchemaVersion, Schema> schemas = new TreeMap<SchemaVersion, Schema>();
-	private Map<SchemaVersion, Class> classDefinitions = new TreeMap<SchemaVersion, Class>();
+	private Map<SchemaVersion, Schema> schemas = new HashMap<SchemaVersion, Schema>();
+	private Map<SchemaVersion, Class> classDefinitions = new HashMap<SchemaVersion, Class>();
 	private String description;
 
 	public static List<MergedClass> merge(List<Schema> schemas)
 			throws TeslaSchemaException {
 		// Find out all classes.
-		Set<String> classes = new TreeSet<String>();
+		Set<String> classes = new HashSet<String>();
 		for (Schema schema : schemas) {
 			for (Type type : schema.getTypes()) {
 				if (type instanceof Class) {
@@ -72,15 +71,16 @@ public class MergedClass {
 		return mcs;
 	}
 
-	public MergedClass(String name, List<Schema> schemas)
+	private MergedClass(String name, List<Schema> schemas)
 			throws TeslaSchemaException {
+		super(name);
 		List<List<Field>> fieldVersions = new ArrayList<List<Field>>();
 		List<List<Field>> inheritedFieldVersions = new ArrayList<List<Field>>();
-		Set<String> baseTypeNames = new TreeSet<String>();
+		Set<String> baseTypeNames = new HashSet<String>();
 		String description = null;
 		for (Schema schema : schemas) {
 			Type def = schema.findType(Class.nameToId(name));
-			if (def != null && def instanceof Class) {
+			if (def instanceof Class) {
 				Class clss = (Class) def;
 				fieldVersions.add(clss.getFields());
 				inheritedFieldVersions.add(clss.getInheritedFields());
@@ -106,25 +106,25 @@ public class MergedClass {
 
 	}
 
+	/**
+	 * Get class full name.
+	 */
 	public String getName() {
 		return this.name;
 	}
 
-	public void setName(String name) {
+	private void setName(String name) {
+		if (name == null || name.isEmpty()) {
+			throw new IllegalArgumentException("Merged class requires a name");
+		}
 		this.name = name;
 	}
 
+	/**
+	 * Get class short name.
+	 */
 	public String getShortName() {
 		return Class.toShortName(name);
-	}
-
-	public void setShortName(String shortName) {
-		String namespace = getNameSpace();
-		if (namespace == null || namespace.isEmpty()) {
-			setName(shortName);
-		} else {
-			this.setName(namespace + '.' + shortName);
-		}
 	}
 
 	public String getNameSpace() {

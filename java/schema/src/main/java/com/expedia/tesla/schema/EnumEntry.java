@@ -13,49 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *******************************************************************************/
-/**
- * EnumEntry.java
- * 
- * This file is generated code by Tesla compiler. Please don't edit. 
- */
 
 package com.expedia.tesla.schema;
 
-public class EnumEntry {
+/**
+ * Represent an Tesla enum entry. An enum entry must have a unique name within the enum type, and an integer value. 
+ * Tesla use integer values when it is encoded in binary.  
+ * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
+public class EnumEntry implements Named {
 	protected java.lang.String name;
 	protected int value;
 	protected java.lang.String description;
 
-	public EnumEntry() {
-	}
-
+	/**
+	 * Constructor.
+	 * 
+	 * @param name
+	 * 		the name of the enum entry 
+	 * @param value
+	 * 		the integer value of the enum entry
+	 * @param description
+	 * 		the description of current enum entry
+	 */
 	public EnumEntry(String name, int value, String description) {
-		setName(name);
-		setValue(value);
-		setDescription(description);
+		this.name = name;
+		this.value = value;
+		this.description = description;
 	}
 
+	/**
+	 * Get the entry name.
+	 * @return
+	 * 		the entry name
+	 */
 	public java.lang.String getName() {
 		return this.name;
 	}
 
-	public void setName(java.lang.String value) {
-		this.name = value;
-	}
-
+	/**
+	 * Get the integer value.
+	 * @return
+	 * 		the intger value
+	 */
 	public int getValue() {
 		return this.value;
 	}
 
-	public void setValue(int value) {
-		this.value = value;
-	}
-
+	/**
+	 * Get the description of current enum entry.
+	 * 
+	 * @return
+	 * 		the description of current enum entry
+	 */
 	public java.lang.String getDescription() {
 		return this.description;
-	}
-
-	public void setDescription(java.lang.String value) {
-		this.description = value;
 	}
 }

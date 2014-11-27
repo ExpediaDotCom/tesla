@@ -17,15 +17,30 @@ package com.expedia.tesla.schema;
 
 import java.util.Iterator;
 
+/**
+ * Implement a peeking iterator. This can be used to peek at values in the underlying iterator before iterating over 
+ * them.
+ *
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ */
 public class PeekIterator<T> implements Iterator<T> {
 
 	private Iterator<T> itr;
 	private T next;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param itr
+	 * 		the underlying iterator
+	 */
 	PeekIterator(Iterator<T> itr) {
 		this.itr = itr;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean hasNext() {
 		if (next != null)
@@ -33,6 +48,9 @@ public class PeekIterator<T> implements Iterator<T> {
 		return itr.hasNext();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public T next() {
 		if (next != null) {
@@ -43,11 +61,20 @@ public class PeekIterator<T> implements Iterator<T> {
 		return itr.next();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * Peek at the current value without advancing the iterator.
+	 *  
+	 * @return
+	 * 		the current value
+	 */
 	public T peek() {
 		if (next == null) {
 			next = next();

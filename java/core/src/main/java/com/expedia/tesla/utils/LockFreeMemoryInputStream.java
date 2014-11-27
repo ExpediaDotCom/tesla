@@ -22,6 +22,7 @@ import java.io.InputStream;
 /**
  * This class is copied from java.io.ByteArrayInputStream and removed the
  * synchronized keyword from all methods in order to avoid synchronization cost.
+ * IT IS NOT THREAD SAFE.
  * 
  * A <code>LockFreeMemoryInputStream</code> contains an internal buffer that
  * contains bytes that may be read from the stream. An internal counter keeps

@@ -15,44 +15,66 @@
  *******************************************************************************/
 package com.expedia.tesla.schema;
 
+/**
+ * Tesla map is a list of typed key value pairs. 
+ *  
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
 public class Map extends Type {
 	private Type keyType;
 	private Type valueType;
 	private String extraTypeId;
 
-	public Map() {
-	}
-
+	/**
+	 * Create a Tesla map type. 
+	 * 
+	 * @param keyType
+	 * 		the key type
+	 * @param valueType
+	 * 		the value type
+	 * @param extraTypeId
+	 * 		the optional programming language specific type extension. An sample of this for Java is 
+	 * 		{@code java.util.Map,java.util.TreeMap}. This tells Tesla compiler to use interface type java.util.Map when 
+	 * 		it declares a variable in the generated source, and use java.util.TreeMap when it {@code new} an instance
+	 * 		of this type. Tesla use {@code java.util.Map,java.util.TreeMap} by default.
+	 */
 	public Map(Type keyType, Type valueType, String extraTypeId) {
-		setKeyType(keyType);
-		setValueType(valueType);
-		setExtraTypeId(extraTypeId);
+		if (keyType == null) {
+			throw new IllegalArgumentException("key type is required");
+		}
+		if (valueType == null) {
+			throw new IllegalArgumentException("value type is required");
+		}
+		this.keyType = keyType;
+		this.valueType = valueType;
+		this.extraTypeId = extraTypeId;
 	}
 
+	/**
+	 * Get the key type.
+	 */
 	public Type getKeyType() {
 		return this.keyType;
 	}
 
-	public void setKeyType(Type value) {
-		this.keyType = value;
-	}
-
+	/**
+	 * Get the value type.
+	 */
 	public Type getValueType() {
 		return this.valueType;
 	}
 
-	public void setValueType(Type value) {
-		this.valueType = value;
-	}
-
+	/**
+	 * Get the programming language specific type extension 
+	 */
 	public String getExtraTypeId() {
 		return this.extraTypeId;
 	}
 
-	public void setExtraTypeId(String value) {
-		this.extraTypeId = value;
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getTypeId() {
 		String ex = this.getExtraTypeId();

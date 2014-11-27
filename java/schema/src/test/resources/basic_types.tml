@@ -26,6 +26,7 @@
       
       <field name="mapStringDouble" type="map(string,double)" />
       <field name="mapStringWrapperClass" type="map(string,class(WrapperClass))" />
+      <field name="mapWrapperClassWrapperClass" type="map(class(WrapperClass),class(WrapperClass))" />
       <field name="mapStringNullableWrapperClass" type="map(string,nullable(WrapperClass))" />
       
       <field name="nullableString1" type="string" nullable="true"/>

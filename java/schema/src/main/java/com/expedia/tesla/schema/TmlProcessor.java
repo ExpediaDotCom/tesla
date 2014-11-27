@@ -33,9 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
@@ -70,15 +67,16 @@ import com.expedia.tesla.schema.tml.v2.Tml;
  */
 abstract class TmlProcessor {
 
-	private static Set<String> PRIMITIVE_NAMES = new TreeSet<String>();
-	private static JAXBContext jaxbContext;
+	private static final Set<String> PRIMITIVE_NAMES = new HashSet<String>();
+	private static final Pattern TYPE_ID_KEYWORDS_PATTERN = Pattern.compile(",|<|>|\\[|\\]|array|map|nullable|reference|poly");
+	private static final JAXBContext JAXB_CONTEXT;
 
 	static {
 		for (Primitive t : Primitive.ALL_PRIMITIVES) {
 			PRIMITIVE_NAMES.add(t.getName());
 		}
 		try {
-			jaxbContext = JAXBContext.newInstance(Tml.class);
+			JAXB_CONTEXT = JAXBContext.newInstance(Tml.class);
 		} catch (JAXBException e) {
 			throw new RuntimeException("Failed to create JAXB context.", e);
 		}
@@ -96,7 +94,7 @@ abstract class TmlProcessor {
 	 * 
 	 * @throws Exception
 	 */
-	public static List<Object> load(String path) throws TeslaSchemaException,
+	public static Collection<Object> load(String path) throws TeslaSchemaException,
 			IOException {
 		File file = new File(path);
 		TmlGraph graph = new TmlGraph(file);
@@ -155,17 +153,19 @@ abstract class TmlProcessor {
 				userTypes.add(enm);
 			}
 		}
-		save(userTypes, os, schema.getVersion().getName());
+		SchemaVersion ver = schema.getVersion();
+		save(userTypes, os, ver.getName(), ver.getVersionNumber());
 	}
 
 	public static void save(List<Object> userTypes, OutputStream os,
-			String versionName) throws IOException, JAXBException {
+			String versionName, int versionNumber) throws IOException, JAXBException {
 		Tml tml = new Tml();
 		Tml.Types types = new Tml.Types();
 		types.getClazzOrEnum().addAll(userTypes);
 		tml.setTypes(types);
 		Tml.Version ver = new Tml.Version();
 		ver.setName(versionName);
+		ver.setNumber(versionNumber);
 		tml.setVersion(ver);
 		TmlGraph.marshallTml(tml, os);
 	}
@@ -235,7 +235,7 @@ abstract class TmlProcessor {
 							String fullNames = "";
 							for (int i = 0; i < baseTypeNames.length; i++) {
 								fullNames += fullNames.isEmpty() ? "" : ",";
-								fullNames += resolveTypeRefernceToTypeId(
+								fullNames += resolveTypeReferenceToTypeId(
 										normalizeTypeId(baseTypeNames[i]),
 										namespace, types, null); // TODO: dump
 																	// name
@@ -251,7 +251,7 @@ abstract class TmlProcessor {
 								field.setDisplayname(field.getName());
 							}
 							field.setType(normalizeTypeId(field.getType()));
-							field.setType(resolveTypeRefernceToTypeId(
+							field.setType(resolveTypeReferenceToTypeId(
 									field.getType(), namespace, types, null)); // TODO:
 																				// dump
 																				// name
@@ -280,39 +280,33 @@ abstract class TmlProcessor {
 		});
 	}
 
-	private static String resolveTypeRefernceToTypeId(String name,
+	private static String resolveTypeReferenceToTypeId(String name,
 			String defaultNamespace, List<Object> currentUserTypes,
 			List<Object> importedUserTypes) throws TeslaSchemaException {
-
-		Pattern pattern = Pattern.compile("(.*)(class<)(.+)(>)(.*)");
-		while (true) {
-			Matcher matcher = pattern.matcher(name);
-			if (matcher.matches()) {
-				name = matcher.group(1) + matcher.group(3) + matcher.group(5);
-			} else {
-				break;
-			}
-		}
-
-		pattern = Pattern.compile("(.*)(enum<)(.+)(>)(.*)");
-		while (true) {
-			Matcher matcher = pattern.matcher(name);
-			if (matcher.matches()) {
-				name = matcher.group(1) + matcher.group(3) + matcher.group(5);
-			} else {
-				break;
-			}
-		}
-
-		String[] tokens = name.split(Schema.TYPE_ID_PATTERN);
+		
+		// If this is a type id format, break down the string into token stream and resolve type name tokens.
+		String[] tokens = name.split(Schema.TYPE_ID_TOKENIZER_PATTERN);
 		if (tokens.length >= 3) {
 			String id = "";
 			for (int i = 0; i < tokens.length; i++) {
-				if (!tokens[i].matches(",|<|>|\\[|\\]|array|map|nullable|reference|poly")) {
-					tokens[i] = resolveTypeRefernceToTypeId(tokens[i], defaultNamespace, currentUserTypes, 
+				if (!TYPE_ID_KEYWORDS_PATTERN.matcher(tokens[i]).matches()) {
+					String token = resolveTypeReferenceToTypeId(tokens[i], defaultNamespace, currentUserTypes, 
 							importedUserTypes);
+					
+					// In case the type reference is something like class<MyClass>, the resolved token will looks like
+					// class<namespace.MyClass>. In order to avoid result of class<class<namespace.MyClass>>, we will 
+					// use only the resolved full class or enum name here.
+					if (i >= 2 && i < tokens.length - 1 && tokens[i - 1].equals("<") && tokens[i + 1].equals(">")) {
+						if (tokens[i - 2].equals("class") ) {
+							token = token.substring("class<".length(), token.length() - 1);
+						} else if (tokens[i - 2].equals("enum")) {
+							token = token.substring("enum<".length(), token.length() - 1);
+						}
+					}
+					id += token;
+				} else {
+					id += tokens[i];
 				}
-				id += tokens[i];
 			}
 			return id;
 		}
@@ -393,7 +387,7 @@ abstract class TmlProcessor {
 	}
 
 	public static Tml unmarshalTml(String path) throws JAXBException {
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+		Unmarshaller unmarshaller = JAXB_CONTEXT.createUnmarshaller();
 		return (Tml) unmarshaller.unmarshal(new File(path));
 	}
 
@@ -453,7 +447,7 @@ abstract class TmlProcessor {
 	}
 
 	public static Schema build(String path) throws TeslaSchemaException, IOException {
-		List<Object> types = TmlProcessor.load(path);
+		Collection<Object> types = TmlProcessor.load(path);
 		long hash = TmlProcessor.getSchemaHash(path);
 		Tml.Version ver = TmlGraph.unmarshallTml(new File(path)).getVersion();
 		return TmlProcessor.build(types,
@@ -461,7 +455,7 @@ abstract class TmlProcessor {
 						: ver.getNumber().shortValue(), ver.getName(), path));
 	}
 
-	public static Schema build(List<Object> types, SchemaVersion ver) throws TeslaSchemaException {
+	public static Schema build(Collection<Object> types, SchemaVersion ver) throws TeslaSchemaException {
 		Schema.SchemaBuilder schemaBuilder = new Schema.SchemaBuilder();
 
 		for (Object type : types) {
@@ -494,17 +488,14 @@ abstract class TmlProcessor {
 				
 				List<Field> fields = new ArrayList<Field>();
 				for (Tml.Types.Class.Field f : c.getField()) {
-					Field field = new Field();
-					field.setName(f.getName());
-					field.setDisplayName(f.getDisplayname());
-					field.setType(schemaBuilder.addType(f.getType()));
-					field.setDescription(f.getDescription());
-					Map<String, String> attributes = new TreeMap<String, String>();
+					Map<String, String> attributes = new HashMap<String, String>();
 					for (Map.Entry<QName, String> attr : f.getOtherAttributes().entrySet()) {
 						attributes.put(attr.getKey().getLocalPart(),
 								attr.getValue());
 					}
-					field.setAttributes(attributes);
+
+					Field field = new Field(f.getName(), f.getDisplayname(), schemaBuilder.addType(f.getType()),
+							attributes, f.getDescription());
 					fields.add(field);
 				}
 				
@@ -515,7 +506,7 @@ abstract class TmlProcessor {
 				Tml.Types.Enum e = (Tml.Types.Enum) type;
 				Enum enm = (Enum) schemaBuilder.findType(Enum.nameToId(e.getName()));
 
-				List<EnumEntry> entries = new ArrayList<EnumEntry>();
+				Collection<EnumEntry> entries = new ArrayList<EnumEntry>();
 				for (Tml.Types.Enum.Entry tmlEntry : e.getEntry()) {
 					entries.add(new EnumEntry(tmlEntry.getName(), tmlEntry.getValue(), tmlEntry.getDescription()));
 				}

@@ -9,7 +9,6 @@
     <class name="Engineer" extends="com.expedia.tesla.example.Employee" />
     <class name="SoftwareEngineer" extends="class(com.expedia.tesla.example.Engineer)" />
     <class name="Manager" extends="class(Employee)" />
-    <class name="SoftewareDevelopmentManager" extends="class(Manager),SoftwareEngineer" />
     <class name="Person" >
       <field name="Name" type="string"/>
       <field name="Age" type="byte" nullable="true" />

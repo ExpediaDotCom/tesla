@@ -18,7 +18,7 @@ package com.expedia.tesla.schema;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,12 +62,12 @@ public class TmlProcessorTest {
 
 		assertEquals(contactArray, person.findField("Contacts").getType());
 
-		List<EnumEntry> sexValues = sex.getEntries();
+		Collection<EnumEntry> sexValues = sex.getEntries();
 		assertEquals(2, sexValues.size());
-		assertEquals("Male", sexValues.get(0).getName());
-		assertEquals("Female", sexValues.get(1).getName());
-		assertEquals(1, sexValues.get(0).getValue());
-		assertEquals(2, sexValues.get(1).getValue());
+		assertEquals(1, sex.findEntry("Male").getValue());
+		assertEquals(2, sex.findEntry("Female").getValue());
+		assertEquals("Male", sex.findEntry("Male").getName());
+		assertEquals("Female", sex.findEntry("Female").getName());
 
 		Class employee = (Class) schema
 				.findType("class<com.expedia.tesla.example.Employee>");
@@ -78,7 +78,7 @@ public class TmlProcessorTest {
 	}
 
 	private Class loadBasicWrapperClass() throws Exception {
-		List<Object> types = TmlProcessor
+		Collection<Object> types = TmlProcessor
 				.load("src/test/resources/basic_types.tml");
 		Schema schema = TmlProcessor.build(types, new SchemaVersion(0));
 		Class clss = (Class) schema
@@ -136,6 +136,9 @@ public class TmlProcessorTest {
 		assertEquals(
 				"map<string,class<com.expedia.tesla.example.WrapperClass>>",
 				clss.findField("mapStringWrapperClass").getType().getTypeId());
+		assertEquals(
+				"map<class<com.expedia.tesla.example.WrapperClass>,class<com.expedia.tesla.example.WrapperClass>>",
+				clss.findField("mapWrapperClassWrapperClass").getType().getTypeId());
 	}
 
 	@Test

@@ -26,9 +26,6 @@ public class Array extends Type {
 	private Type elementType;
 	private String extraTypeId;
 
-	Array() {
-	}
-
 	/**
 	 * Construct a Tesla Array type with element type and extra type information.
 	 * 
@@ -39,14 +36,11 @@ public class Array extends Type {
 	 * 		the extra type id that specifies concrete type information for specific language.
 	 */
 	Array(Type elementType, String extraTypeId) {
+		if (elementType == null) {
+			throw new IllegalArgumentException("elementType == null");
+		}
 		this.elementType = elementType;
 		this.extraTypeId = extraTypeId;
-		if (elementType == null) {
-			throw new AssertionError("elementType == null");
-		}
-		if (elementType.getTypeId() == null) {
-			throw new AssertionError("elementType.getTypeId() == null");
-		}
 	}
 
 	/**
@@ -58,16 +52,6 @@ public class Array extends Type {
 	}
 
 	/**
-	 * Set the array element type.
-	 * 
-	 * @param elementType
-	 *        the elementType to set
-	 */
-	public void setElementType(Type elementType) {
-		this.elementType = elementType;
-	}
-
-	/**
 	 * @return the extraTypeId
 	 */
 	public String getExtraTypeId() {
@@ -75,13 +59,8 @@ public class Array extends Type {
 	}
 
 	/**
-	 * @param extraTypeId
-	 *         the extraTypeId to set
+	 * {@inheritDoc}
 	 */
-	public void setExtraTypeId(String extraTypeId) {
-		this.extraTypeId = extraTypeId;
-	}
-
 	@Override
 	public String getTypeId() {
 		String s = getExtraTypeId();

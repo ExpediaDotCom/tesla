@@ -1,5 +1,5 @@
 ########################################################################################################################
-##  Context variable requiered
+##  Context variables required
 ##  1. schema
 ##  2. mapper 
 ##  3. deserialzerName
@@ -34,7 +34,8 @@
     
     public $td.InterfaceName read${td.Symbol}(java.lang.String name, $td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode node) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!node.isObject())
-            throw new AssertionError("BUG, not an object!");
+            throw new TeslaDeserializationException(String.format(
+            	"Invalid Tesla JSON object encoding, expect a JSON object. Field: '%s', type: \"$type.TypeId\"!", name));
         if (v == null) 
             v = new ${td.ActualTypeName}();
         com.fasterxml.jackson.databind.JsonNode vn;
@@ -73,10 +74,8 @@
             throw new AssertionError("BUG, not a json array value");
         java.util.Iterator<com.fasterxml.jackson.databind.JsonNode> itr = node.elements();
 #if( $td.getActualTypeName().matches(".*\[\]$") )
-        int size = 0;
-        for (; itr.hasNext(); size++) itr.next();
+        int size = node.size();
         ${td.InterfaceName} v = new $td.ActualTypeName.replaceFirst("(.*?)(\[\])((\[\])*)$", "$1[size]$3");
-        itr = node.elements();
         for (int i = 0; i < size; i++) {
             v[i] = read${etd.Symbol}(name, itr.next());
         }
@@ -108,11 +107,11 @@
         java.lang.String v = node.textValue();
 #set( $enumName = $td.InterfaceName.replace('$', '.') )
 #foreach( $entry in $type.Entries )
-        if (v.equals("${entry.Name}")) {
+        if ("${entry.Name}".equals(v)) {
             return ${enumName}.${entry.Name};
         }
 #end
-        throw new java.io.IOException(String.format(
+        throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
             "Invalid Enum value '%s' encountered when reading field %s (type id '$type.TypeId')", 
             v, name));
     }
@@ -127,8 +126,7 @@
             return node.textValue();
         if (node.isNull())
             return null;
-        // TODO: fix me
-        throw new java.io.IOException(String.format(
+        throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
                 "Unexpected type %d for field %s (type id \"$type.TypeId\")", 
                 $tid, name)); 
     }
@@ -138,7 +136,8 @@
 #set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
     public $td.InterfaceName read${td.Symbol}(java.lang.String name, com.fasterxml.jackson.databind.JsonNode node) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!node.isObject())
-            throw new AssertionError("BUG, not a reference object!");
+            throw new TeslaDeserializationException(String.format(
+            	"Invalid Tesla JSON reference encoding, expect a JSON object. Field: '%s', type: \"$type.TypeId\"!", name));
 
         if (node.has("@reference")) {
             int id = read${int32_desc.Symbol}(name, node.findValue("@reference"));
@@ -149,7 +148,8 @@
             refPolicy.putInputReference(id, v, ${clzzName}.class);
             return v;
         }
-        throw new AssertionError("BUG, not a reference object!");
+        throw new TeslaDeserializationException(String.format(
+        	"Invalid Tesla JSON reference encoding, expect a '@reference' or '@id' property. Field: '%s', type: \"$type.TypeId\"!", name));
     }
 #end
 #if( $type.isPrimitive() )
@@ -179,7 +179,7 @@
 #elseif( $type.Name == "binary" )
         return node.binaryValue();
 #else
-        wrong!
+        THIS IS A TEMPLATE BUG! Unexpected Tesla primitive type $type.Name! 
 #end  
     }
 #end

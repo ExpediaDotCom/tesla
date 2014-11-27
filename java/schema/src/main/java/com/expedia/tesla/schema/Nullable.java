@@ -21,24 +21,39 @@
 
 package com.expedia.tesla.schema;
 
+/**
+ * A type that can be null.
+ * <p>
+ * All Tesla types are not allowed to be null unless it wrapped in a {@code Nullable}. The generated code from the 
+ * builtin source code templates will check for {@code null} only for {@code Nullable} types. 
+ * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
 public class Nullable extends Type {
 	private Type elementType;
 
-	public Nullable() {
-	}
-
+	/**
+	 * Wrap a Tesla type into a nullable type, which accepts {@code null}. 
+	 * 
+	 * @param elementType
+	 * 		the Tesla type that could be {@code null}.
+	 */
 	public Nullable(Type elementType) {
-		setElementType(elementType);
+		this.elementType = elementType;
 	}
 
+	/**
+	 * Get wrapped Tesla type.
+	 */
 	public Type getElementType() {
 		return this.elementType;
 	}
 
-	public void setElementType(Type value) {
-		this.elementType = value;
-	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getTypeId() {
 		return "nullable<" + getElementType().getTypeId() + ">";

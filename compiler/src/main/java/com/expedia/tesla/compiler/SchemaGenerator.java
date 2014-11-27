@@ -16,10 +16,11 @@
 
 package com.expedia.tesla.compiler;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -40,41 +41,9 @@ import com.expedia.tesla.schema.TeslaSchemaException;
  * @author <a href="mailto:yzuo@expedia.com">Yunfei Zuo</a>
  */
 public class SchemaGenerator {
-	@Parameter(description = "Output TML file path", required = true, converter = FileConverter.class)
-	private File output;
-	
-	@Parameter(names={"-c", "-class"}, 
-			description = "Generate schema (TML file) from the user class definition by java reflection. The " +
-					"compiler will load the class by name and generate Tesla fields for all public properties " +
-					"by default. Please use -classpath option to specify the search path for your class, or put " +
-					"them in JVM classpath.",
-			required = true)
-	private List<String> genTmlRootClasses;
-	
-	@Parameter(names={"-cp", "-classpath"}, 
-			description = "Java classpath that compiler will search for user classes.")
-	String classpath;
-	
-	@Parameter(names={"-ver", "-schemaversion"},
-			description = "Specify a schema version name and (or) version number for the generated schema. " +
-					"Version name is required while version number is option. For more information about Tesla " +
-					"schema version, please refer Tesla documentation or specification. Sample: -ver name="+
-					"Abc Service v2.5.1,number=6",
-			required = true,
-			converter = SchemaVersionConverter.class)
-	SchemaVersion schemaVersion;
-
-	@Parameter(names = "--help", help = true)
-	private boolean help;
-
-	/**
-	 * Constructor. 
-	 */
-	private SchemaGenerator() {
-	}
 	
 	/**
-	 * Constructor.
+	 * Generate Tesla schema file (TML) from Java classes that follow Java Bean convention.
 	 * 
 	 * @param classes
 	 * 		The full names of classes that generate schema from.
@@ -85,16 +54,7 @@ public class SchemaGenerator {
 	 * @param classpath
 	 * 		The Java class path of the classes listed in parameter {@code classes}. Tesla compiler will search classes
 	 * 		from both system class path and the class paths listed in this parameter.
-	 */
-	public SchemaGenerator(List<String> classes, SchemaVersion schemaVersion, File output, String classpath) {
-		this.genTmlRootClasses = classes;
-		this.classpath = classpath;
-		this.output = output;
-		this.schemaVersion = schemaVersion;
-	}
-
-	/**
-	 * Generate Tesla schema file (TML) from Java classes that follow Java Bean convention.
+	 * 
 	 * @throws IOException 
 	 * 		On IO errors.
 	 * @throws TeslaSchemaException 
@@ -104,43 +64,55 @@ public class SchemaGenerator {
 	 * @throws JAXBException 
 	 * 		When there is a JAXB error.
 	 */
-	public void genTml() throws IOException, TeslaSchemaException, ClassNotFoundException, JAXBException {
+	public static void genTml(Collection<String> classes, SchemaVersion schemaVersion, OutputStream output, 
+			String classpath) throws IOException, TeslaSchemaException, ClassNotFoundException, JAXBException {
 		JavaTypeMapper mapper = new JavaTypeMapper();
 		Schema.SchemaBuilder schemaBuilder = new Schema.SchemaBuilder();
-		schemaBuilder.setVersion(this.schemaVersion);
+		schemaBuilder.setVersion(schemaVersion);
 
-		for (String name : this.genTmlRootClasses) {
-				java.lang.Class<?> clzz = Util.loadClass(name, this.classpath);
-				mapper.fromJavaClass(schemaBuilder, clzz);
+		for (String name : classes) {
+			java.lang.Class<?> clzz = Util.loadClass(name, classpath);
+			mapper.fromJavaClass(schemaBuilder, clzz);
 		}
-		try (OutputStream os = new FileOutputStream(this.output)) {
-			schemaBuilder.build().save(os);
-		}
-	}
-
-	public static void main(String[] args) throws Exception {
-		JCommander jc = null;
-		try {
-			SchemaGenerator sg = new SchemaGenerator();
-			jc = new JCommander(sg);
-			jc.parse(args);			
-		} catch (ParameterException e) {
-			jc.usage();
-			throw e;
-		} catch (Exception e) {
-			System.err.printf("Error: %s\n", e.getMessage());
-			throw e;
-		}
+		schemaBuilder.build().save(output);
 	}
 	
-	private class FileConverter implements IStringConverter<File> {
-		@Override
-		public File convert(String value) {
-			return new File(value);
-		}
+	private static class CommandLineParameters {
+		@Parameter(description = "Output TML file path", required = true)
+		private List<String> outputFiles = new ArrayList<>();
+		
+		@Parameter(names={"-rc", "--root-class"}, 
+				description = "Generate schema (TML file) from the user class definition by java reflection. The " +
+						"compiler will load the class by name and generate Tesla fields for all public properties " +
+						"by default. Please use -classpath option to specify the search path for your class, or put " +
+						"them in JVM classpath.",
+				required = true)
+		private List<String> rootClasses;
+		
+		@Parameter(names={"-cp", "-classpath"}, 
+				description = "Java classpath that compiler will search for user classes.")
+		private String classpath;
+		
+		@Parameter(names={"-ver", "--schema-version"},
+				description = "Specify a schema version name and (or) version number for the generated schema. " +
+						"Version name is required while version number is option. For more information about Tesla " +
+						"schema version, please refer Tesla documentation or specification. Sample: -ver name="+
+						"Abc Service v2.5.1,number=6",
+				required = true,
+				converter = SchemaVersionConverter.class)
+		private SchemaVersion schemaVersion;
+	
+		@Parameter(names = "--help", help = true)
+		private boolean help;
 	}
 	
-	private class SchemaVersionConverter implements IStringConverter<SchemaVersion> {
+	/**
+	 * JCommander parameter converter that parses command line string to schema version. 
+	 * 
+	 * @author Yunfei Zuo (yzuo@expedia.com)
+	 *
+	 */
+	public static class SchemaVersionConverter implements IStringConverter<SchemaVersion> {
 		@Override
 		public SchemaVersion convert(String value) {
 			String name = null;
@@ -168,6 +140,29 @@ public class SchemaGenerator {
 			}
 				
 			return new SchemaVersion(0L, number, name, null);
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		JCommander jc = null;
+		try {
+			CommandLineParameters p = new CommandLineParameters();
+			jc = new JCommander(p);
+			jc.parse(args);
+			if (p.help) {
+				jc.usage();
+				return;
+			}
+			try (OutputStream os = new FileOutputStream(p.outputFiles.get(0))) {
+				genTml(p.rootClasses, p.schemaVersion, os, p.classpath);
+			} catch (ClassNotFoundException e) {
+				// ClassNotFoundException exception message only says the class name, add a little more information 
+				// to report meaningful error message.
+				throw new RuntimeException(String.format("Could not find class '%s'.", e.getMessage()), e);
+			}
+		} catch (Exception e) {
+			System.err.printf("Error: %s\n", e.getMessage());
+			System.exit(1);
 		}
 	}
 }

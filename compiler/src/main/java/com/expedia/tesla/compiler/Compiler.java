@@ -429,11 +429,8 @@ public class Compiler {
 			jc.parse(args);
 			compiler.compile();
 		} catch (ParameterException e) {
-			jc.usage();
-			throw e;
-		} catch (Exception e) {
 			System.err.printf("Error: %s\n", e.getMessage());
-			throw e;
+			System.exit(1);
 		}
 	}
 	

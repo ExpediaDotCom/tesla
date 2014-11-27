@@ -24,5 +24,5 @@ package com.expedia.tesla.compiler;
  */
 public class SchemaMergeTest {
 
-
+	// TODO: add tests.
 }

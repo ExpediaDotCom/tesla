@@ -126,10 +126,7 @@ public class JavaTypeMapper {
 
 		if (t.isPrimitive()) {
 			JavaTypeDescriptor td = PRIM_DESCRIPTORS.get(t);
-			if (td == null)
-				throw new AssertionError(
-						"BUG! missing a primitive type mapping '"
-								+ t.getTypeId() + "'");
+			assert (td != null) : "BUG! missing a primitive type mapping '" + t.getTypeId() + "'";
 			return td;
 		}
 
@@ -229,7 +226,7 @@ public class JavaTypeMapper {
 					box(etd.getInterfaceName()), box(etd.getActualTypeName()));
 		}
 
-		throw new AssertionError(String.format("unkonw type '%s'", t));
+		throw new TeslaSchemaException(String.format("unkonwn type '%s'", t));
 	}
 
 	/**
@@ -291,7 +288,12 @@ public class JavaTypeMapper {
 	 */
 	public Type fromJavaClass(Schema.SchemaBuilder schemaBuilder, java.lang.Class<?> javaType)
 			throws TeslaSchemaException {
-		String classTypeId = Class.nameToId(javaType.getCanonicalName());
+		String className = javaType.getCanonicalName(); 
+		if (className == null) {
+			throw new TeslaSchemaException(String.format(
+					"Tesla cannot generate schema for local class '%s'.", javaType.getName()));
+		}
+		String classTypeId = Class.nameToId(className);
 		Class clss = (Class) schemaBuilder.findType(classTypeId);
 		if (clss != null) {
 			return clss;
@@ -306,21 +308,21 @@ public class JavaTypeMapper {
 		}
 
 		List<Field> fields = new ArrayList<>();
-		for (PropertyDescriptor propDesc : PropertyUtils
-				.getPropertyDescriptors(javaType)) {
+		for (PropertyDescriptor propDesc : PropertyUtils.getPropertyDescriptors(javaType)) {
 			Type fieldType = null;
 			String fieldName = propDesc.getName();
 			Method readMethod = propDesc.getReadMethod();
 			Method writeMethod = propDesc.getWriteMethod();
 
+			// Ignore the property it missing getter or setter method.
 			if (writeMethod == null || readMethod == null) {
 				continue;
 			}
-			if (clss.hasField(propDesc.getName())) {
+			if ((superClass != null && superClass.hasField(fieldName)) || clss.hasField(fieldName)) {
 				continue;
 			}
-			if (readMethod
-					.getAnnotation(com.expedia.tesla.schema.annotation.SkipField.class) != null) {
+			// Ignore the property if it is annotated with "SkipField".
+			if (readMethod.getAnnotation(com.expedia.tesla.schema.annotation.SkipField.class) != null) {
 				continue;
 			}
 			com.expedia.tesla.schema.annotation.TypeId tidAnnotation = readMethod
@@ -335,7 +337,6 @@ public class JavaTypeMapper {
 			} else {
 				java.lang.reflect.Type propType = readMethod
 						.getGenericReturnType();
-				readMethod.getReturnType();
 				fieldType = fromJava(schemaBuilder, propType);
 				if (!(propType instanceof java.lang.Class<?> && ((java.lang.Class<?>) propType)
 						.isPrimitive())) {
@@ -356,12 +357,8 @@ public class JavaTypeMapper {
 				if (fieldType.isNullable() && anntNotNullable != null) {
 					fieldType = ((Nullable) fieldType).getElementType();
 				}
-				if (fieldType.isNullable() && anntNullable != null) {
-					fieldType = ((Nullable) fieldType).getElementType();
-				}
 				if (!fieldType.isReference()
-						&& readMethod
-								.getAnnotation(com.expedia.tesla.schema.annotation.Reference.class) != null) {
+						&& readMethod.getAnnotation(com.expedia.tesla.schema.annotation.Reference.class) != null) {
 					fieldType = schemaBuilder.addType(String.format("reference<%s>",
 							fieldType.getTypeId()));
 				}
@@ -385,10 +382,10 @@ public class JavaTypeMapper {
 			attributes.put("getter", getter);
 			attributes.put("setter", setter);
 
-			new Field(fieldName, fieldDisplayName, fieldType, attributes, null);
+			fields.add(new Field(fieldName, fieldDisplayName, fieldType, attributes, null));
 		}
 		
-		clss.define(Arrays.asList(new Class[]{superClass}), fields, null);
+		clss.define(superClass == null ? null : Arrays.asList(new Class[]{superClass}), fields, null);
 		return clss;
 	}
 
@@ -401,7 +398,7 @@ public class JavaTypeMapper {
 		List<EnumEntry> entries = new ArrayList<>();
 		for (Object v : t.getEnumConstants()) {
 			java.lang.Enum<?> e = (java.lang.Enum<?>) v;
-			if (!enm.hasValue(e.name())) {
+			if (!enm.hasEntry(e.name())) {
 				entries.add(new EnumEntry(e.name(), e.ordinal(), null));
 			}
 		}
@@ -413,8 +410,7 @@ public class JavaTypeMapper {
 			throws TeslaSchemaException {
 		// TODO: handle classes derived from Java collections.
 
-		if (jt.isPrimitive() || jt == String.class || jt == byte[].class
-				|| PRIM_INDEX.containsKey(jt.getCanonicalName())) {
+		if (PRIM_INDEX.containsKey(jt.getCanonicalName())) {
 			Primitive p = PRIM_INDEX.get(jt.getCanonicalName());
 			return schemaBuilder.addType(p.getTypeId());
 		}
@@ -500,7 +496,7 @@ public class JavaTypeMapper {
 
 			return fromJavaForward(schemaBuilder, rt);
 		} else {
-			throw new AssertionError("BUG");
+			throw new TeslaSchemaException("BUG");
 		}
 	}
 }

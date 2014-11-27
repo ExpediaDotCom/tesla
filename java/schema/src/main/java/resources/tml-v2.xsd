@@ -15,11 +15,7 @@
         <xsd:element name="version">
           <xsd:complexType>
             <xsd:attribute name="name" type="xsd:string" use="required" />
-            <xsd:attribute name="number" use="optional">
-              <xsd:simpleType>
-                <xsd:restriction base="xsd:positiveInteger" />
-              </xsd:simpleType>
-            </xsd:attribute>
+            <xsd:attribute name="number" type="xsd:int" use="optional" />
           </xsd:complexType>
         </xsd:element>
         <xsd:element name="namespace" minOccurs="0" maxOccurs="1">

@@ -21,24 +21,35 @@
 
 package com.expedia.tesla.schema;
 
+/**
+ * Represent a Tesla reference type.
+ * 
+ * @author Yunfei Zuo (yzuo@expedia.com)
+ *
+ */
 public class Reference extends Type {
 	private Type elementType;
 
-	public Reference() {
-	}
-
+	/**
+	 * Wrap a Tesla type as Tesla reference type.
+	 * 
+	 * @param elementType
+	 * 		the type to be wrapped as Tesla reference. 
+	 */
 	public Reference(Type elementType) {
-		setElementType(elementType);
+		this.elementType = elementType;
 	}
 
+	/**
+	 * Get the actual type refers to.
+	 */
 	public Type getElementType() {
 		return this.elementType;
 	}
 
-	public void setElementType(Type value) {
-		this.elementType = value;
-	}
-
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getTypeId() {
 		return "reference<" + getElementType().getTypeId() + ">";

@@ -1,5 +1,5 @@
 ########################################################################################################################
-##  Context variable requiered
+##  Context variables required
 ##  1. schema
 ##  2. mapper 
 ##  3. serialzerName
