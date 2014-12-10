@@ -34,7 +34,7 @@
     
     public $td.InterfaceName read${td.Symbol}(java.lang.String name, $td.InterfaceName v, com.fasterxml.jackson.databind.JsonNode node) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!node.isObject())
-            throw new TeslaDeserializationException(String.format(
+            throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
             	"Invalid Tesla JSON object encoding, expect a JSON object. Field: '%s', type: \"$type.TypeId\"!", name));
         if (v == null) 
             v = new ${td.ActualTypeName}();
@@ -136,7 +136,7 @@
 #set($clzzName = ${etd.ActualTypeName.replaceAll("<.+>", "")})
     public $td.InterfaceName read${td.Symbol}(java.lang.String name, com.fasterxml.jackson.databind.JsonNode node) throws java.io.IOException, com.expedia.tesla.serialization.TeslaDeserializationException {
         if (!node.isObject())
-            throw new TeslaDeserializationException(String.format(
+            throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
             	"Invalid Tesla JSON reference encoding, expect a JSON object. Field: '%s', type: \"$type.TypeId\"!", name));
 
         if (node.has("@reference")) {
@@ -148,7 +148,7 @@
             refPolicy.putInputReference(id, v, ${clzzName}.class);
             return v;
         }
-        throw new TeslaDeserializationException(String.format(
+        throw new com.expedia.tesla.serialization.TeslaDeserializationException(String.format(
         	"Invalid Tesla JSON reference encoding, expect a '@reference' or '@id' property. Field: '%s', type: \"$type.TypeId\"!", name));
     }
 #end

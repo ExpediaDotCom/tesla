@@ -132,7 +132,7 @@ public class CppTypeMapper {
 					Util.commaSeparate(elementCppTypeNames)));
 		}
 
-		throw new AssertionError(String.format("unkonwn type '%s'", t));
+		throw new AssertionError(String.format("unknown type '%s'", t));
 	}
 
 	public String symbol(Type t) {

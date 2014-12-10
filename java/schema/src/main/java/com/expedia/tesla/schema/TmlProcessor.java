@@ -69,16 +69,11 @@ abstract class TmlProcessor {
 
 	private static final Set<String> PRIMITIVE_NAMES = new HashSet<String>();
 	private static final Pattern TYPE_ID_KEYWORDS_PATTERN = Pattern.compile(",|<|>|\\[|\\]|array|map|nullable|reference|poly");
-	private static final JAXBContext JAXB_CONTEXT;
+	private static JAXBContext jaxbContext;
 
 	static {
 		for (Primitive t : Primitive.ALL_PRIMITIVES) {
 			PRIMITIVE_NAMES.add(t.getName());
-		}
-		try {
-			JAXB_CONTEXT = JAXBContext.newInstance(Tml.class);
-		} catch (JAXBException e) {
-			throw new RuntimeException("Failed to create JAXB context.", e);
 		}
 	}
 
@@ -387,7 +382,10 @@ abstract class TmlProcessor {
 	}
 
 	public static Tml unmarshalTml(String path) throws JAXBException {
-		Unmarshaller unmarshaller = JAXB_CONTEXT.createUnmarshaller();
+		if (jaxbContext == null) {
+			jaxbContext = JAXBContext.newInstance(Tml.class);
+		}
+		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return (Tml) unmarshaller.unmarshal(new File(path));
 	}
 

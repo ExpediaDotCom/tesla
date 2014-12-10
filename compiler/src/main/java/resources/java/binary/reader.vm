@@ -14,7 +14,7 @@
     private com.expedia.tesla.serialization.BinaryReader reader;
     private com.expedia.tesla.serialization.ReferencePolicy refPolicy = new com.expedia.tesla.serialization.ReferencePolicy();
             
-    ${deserialzerName}(InputStream stream) {
+    ${deserialzerName}(java.io.InputStream stream) {
         reader = new com.expedia.tesla.serialization.BinaryReader(stream, SCHEMA_HASH);
     }
 

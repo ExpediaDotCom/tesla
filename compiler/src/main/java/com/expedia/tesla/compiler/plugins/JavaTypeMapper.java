@@ -226,7 +226,7 @@ public class JavaTypeMapper {
 					box(etd.getInterfaceName()), box(etd.getActualTypeName()));
 		}
 
-		throw new TeslaSchemaException(String.format("unkonwn type '%s'", t));
+		throw new TeslaSchemaException(String.format("unknown type '%s'", t));
 	}
 
 	/**

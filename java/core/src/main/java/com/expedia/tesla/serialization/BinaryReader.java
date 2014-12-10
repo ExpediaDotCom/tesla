@@ -31,7 +31,7 @@ import com.expedia.tesla.utils.Unsigned;
  * specification.
  * 
  * @author Yunfei Zuo (yzuo@expedia.com)
- * @see BinaryWrier
+ * @see BinaryWriter
  */
 public class BinaryReader implements TeslaReader {
 
