@@ -123,7 +123,7 @@ Enter the project root directory ```hello```. Create a text file with name ```he
 </schema>
 ```
 
-The above schema defined just one object ```HellowMessage```. It has a string field ```greeting```. The message is put into a default namespace ```com.mycompany.hello```. Every schema must specify a ```version```. The version name is required while the version number is optional. 
+The above schema defined just one object ```HelloMessage```. It has a string field ```greeting```. The message is put into a default namespace ```com.mycompany.hello```. Every schema must specify a ```version```. The version name is required while the version number is optional. 
 
 You can also use full name on the ```name``` attribute of the ```class``` element, which allows you to put your objects into different namespaces.
 
