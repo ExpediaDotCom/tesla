@@ -334,9 +334,7 @@ public class JavaTypeMapper {
 			}
 			if (typeId != null) {
 				fieldType = schemaBuilder.addType(typeId);
-				System.out.println(typeId);
 			} else {
-				System.out.println("typeId == null");
 				java.lang.reflect.Type propType = readMethod
 						.getGenericReturnType();
 				fieldType = fromJava(schemaBuilder, propType);
