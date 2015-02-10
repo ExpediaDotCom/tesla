@@ -277,7 +277,7 @@ public class Util {
 			throws ClassNotFoundException, IOException {
 		java.lang.Class<?> clzz = null;
 		if (urls != null && urls.length > 0) {
-			URLClassLoader cl = URLClassLoader.newInstance(urls);
+			URLClassLoader cl = URLClassLoader.newInstance(urls, Thread.currentThread().getContextClassLoader());
 			clzz = cl.loadClass(name);
 		}
 

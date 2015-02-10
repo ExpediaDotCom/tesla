@@ -93,7 +93,7 @@
 #set($ktd = $mapper.getTypeDescriptor($type.KeyType))
 #set($vtd = $mapper.getTypeDescriptor($type.ValueType))
     public com.fasterxml.jackson.databind.JsonNode write${td.Symbol}($td.InterfaceName oldValue, $td.InterfaceName newValue) throws java.io.IOException, com.expedia.tesla.serialization.TeslaSerializationException {
-        ArrayNode jn = null;
+        com.fasterxml.jackson.databind.node.ArrayNode jn = null;
         for (java.util.Map.Entry<$mapper.box(${ktd.InterfaceName}), $mapper.box(${vtd.InterfaceName})> entry : newValue.entrySet()) {
             com.fasterxml.jackson.databind.JsonNode jne = write$vtd.getSymbol()(oldValue.get(entry.getKey()), entry.getValue());
             if (jne != null) {

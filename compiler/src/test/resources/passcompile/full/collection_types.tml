@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<schema xmlns="urn:expedia:tesla:tml:v2">
+	<version name="compiler test passcompile full collectiontypetest" number="1"/>
+	<types>
+		<class name="com.expedia.tesla.compiler.test.passcompile.full.collectiontypetest">
+			<field name="field1" type="array(string))"/>
+            <field name="field2" type="array[java.util.ArrayList](string))"/>
+            <field name="field4" type="array[java.util.Collection,java.util.ArrayList](string))"/>
+            <field name="field5" type="array[java.util.List,java.util.ArrayList](string))"/>
+            <field name="field6" type="array[java.util.List,java.util.LinkedList](string))"/>
+		</class>
+	</types>
+</schema>

@@ -81,7 +81,7 @@
         return r;
 #else
         for (int i = 0; i < v.size(); i++) {
-            nv.put(i, v.get(i));
+            nv.put(i, com.expedia.tesla.utils.ArrayUtils.get(v, i));
         }
         while (itr.hasNext()) {
             int index = itr.next().intValue();

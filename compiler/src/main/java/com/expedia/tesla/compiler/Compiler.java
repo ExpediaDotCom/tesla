@@ -84,6 +84,9 @@ public class Compiler {
 			description = "Java classpath that compiler will search for user classes.")
 	private String classpath;
 	
+	@Parameter(names ={"-h", "--help"}, description="Show this help message.", help = true)
+	private boolean help;
+	
 	/**
 	 * Constructor.
 	 */
@@ -427,9 +430,13 @@ public class Compiler {
 			Compiler compiler = new Compiler();
 			jc = new JCommander(compiler);
 			jc.parse(args);
-			compiler.compile();
+			if (compiler.help) {
+				jc.usage();
+			} else {
+				compiler.compile();
+			}
 		} catch (ParameterException e) {
-			System.err.printf("Error: %s\n", e.getMessage());
+			System.err.printf("Error: %s\nUse -h or --help option to show usage help.\n", e.getMessage());
 			System.exit(1);
 		}
 	}

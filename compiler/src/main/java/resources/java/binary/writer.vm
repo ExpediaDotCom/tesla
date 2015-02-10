@@ -57,7 +57,7 @@
 #if( $td.getActualTypeName().matches(".*\[\]$") )
         write${uint32_desc.Symbol}(name, v.length);
 #else
-        write${uint32_desc.Symbol}(name, v.size());
+        write${uint32_desc.Symbol}(name, com.expedia.tesla.utils.ArrayUtils.size(v));
 #end
         for ($etd.InterfaceName e : v) {
             write${etd.Symbol}(name, e);

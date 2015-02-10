@@ -15,6 +15,10 @@
  *******************************************************************************/
 package com.expedia.tesla.utils;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Helper methods for array/list access
  *
@@ -23,10 +27,16 @@ package com.expedia.tesla.utils;
  */
 public class ArrayUtils {
 	
-	public static <T> T get(java.util.List<T> v, int i) {
+	public static <T> T get(List<T> v, int i) {
 		return v.get(i);
 	}
-
+	
+	public static <T> T get(Collection<T> v, int i) {
+		Iterator<T> itr = v.iterator();
+		for (int k = 0; k < i; k++) itr.next();
+		return itr.next();
+	}
+	
 	public static <T> T get(T[] v, int i) {
 		return v[i];
 	}
@@ -59,7 +69,7 @@ public class ArrayUtils {
 		return v[i];
 	}
 
-	public static <T> int size(java.util.List<T> v) {
+	public static <T> int size(Collection<T> v) {
 		return v.size();
 	}
 

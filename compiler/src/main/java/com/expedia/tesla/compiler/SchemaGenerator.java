@@ -102,7 +102,7 @@ public class SchemaGenerator {
 				converter = SchemaVersionConverter.class)
 		private SchemaVersion schemaVersion;
 	
-		@Parameter(names = "--help", help = true)
+		@Parameter(names ={"-h", "--help"}, description="Show this help message.", help = true)
 		private boolean help;
 	}
 	
@@ -161,7 +161,7 @@ public class SchemaGenerator {
 				throw new RuntimeException(String.format("Could not find class '%s'.", e.getMessage()), e);
 			}
 		} catch (Exception e) {
-			System.err.printf("Error: %s\n", e.getMessage());
+			System.err.printf("Error: %s\nUse -h or --help option to show usage help.\n", e.getMessage());
 			System.exit(1);
 		}
 	}

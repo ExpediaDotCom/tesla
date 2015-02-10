@@ -53,7 +53,7 @@ import com.expedia.tesla.schema.annotation.Reference;
 import com.expedia.tesla.schema.annotation.TypeId;
 
 /**
- * Telsa compiler merge tests.
+ * Telsa schema generator tests.
  * 
  * @author Yunfei Zuo (yzuo@expedia.com)
  *

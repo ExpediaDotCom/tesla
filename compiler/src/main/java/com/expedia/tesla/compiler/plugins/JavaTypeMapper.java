@@ -80,7 +80,7 @@ public class JavaTypeMapper {
 					pm.primtive,
 					new JavaTypeDescriptor(pm.primtive, "_"
 							+ pm.primtive.getName(), pm.unboxed
-							.getCanonicalName(), pm.boxed.getCanonicalName()));
+							.getCanonicalName(), pm.unboxed.getCanonicalName()));
 
 			PRIM_INDEX.put(pm.unboxed.getCanonicalName(), pm.primtive);
 			PRIM_INDEX.put(pm.boxed.getCanonicalName(), pm.primtive);
@@ -145,35 +145,35 @@ public class JavaTypeMapper {
 			JavaTypeDescriptor etd = getTypeDescriptor(e);
 			
 			String containerInfo = a.getExtraTypeId();
-			if (!mapToJavaArray) {
-				containerInfo = "java.util.List,java.util.ArrayList";
-			}
-
 			if (containerInfo == null || containerInfo.isEmpty()) {
-				return new JavaTypeDescriptor(t, symbol(t),
-						etd.getInterfaceName() + "[]", etd.getInterfaceName()
-								+ "[]");
-			} else {
-				String tokens[] = containerInfo.split(",");
-				String interfaceName = null;
-				String actualTypeName = null;
-				if (tokens.length == 1) {
-					interfaceName = actualTypeName = tokens[0];
-				} else if (tokens.length == 2) {
-					interfaceName = tokens[0];
-					actualTypeName = tokens[1];
+				if (!mapToJavaArray) {
+					containerInfo = "java.util.List,java.util.ArrayList";
 				} else {
-					throw new TeslaSchemaException(String.format(
-							"Can't find type mapping for type '%s'.",
-							t.getTypeId()));
+					return new JavaTypeDescriptor(t, symbol(t),
+							etd.getInterfaceName() + "[]", etd.getInterfaceName()
+									+ "[]");
 				}
-				interfaceName = String.format(interfaceName + "<%s>",
-						box(etd.getInterfaceName()));
-				actualTypeName = String.format(actualTypeName + "<%s>",
-						box(etd.getInterfaceName()));
-				return new JavaTypeDescriptor(t, symbol(t), interfaceName,
-						actualTypeName);
 			}
+			
+			String tokens[] = containerInfo.split(",");
+			String interfaceName = null;
+			String actualTypeName = null;
+			if (tokens.length == 1) {
+				interfaceName = actualTypeName = tokens[0];
+			} else if (tokens.length == 2) {
+				interfaceName = tokens[0];
+				actualTypeName = tokens[1];
+			} else {
+				throw new TeslaSchemaException(String.format(
+						"Can't find type mapping for type '%s'.",
+						t.getTypeId()));
+			}
+			interfaceName = String.format(interfaceName + "<%s>",
+					box(etd.getInterfaceName()));
+			actualTypeName = String.format(actualTypeName + "<%s>",
+					box(etd.getInterfaceName()));
+			return new JavaTypeDescriptor(t, symbol(t), interfaceName,
+					actualTypeName);
 		}
 
 		if (t.isMap()) {
@@ -334,7 +334,9 @@ public class JavaTypeMapper {
 			}
 			if (typeId != null) {
 				fieldType = schemaBuilder.addType(typeId);
+				System.out.println(typeId);
 			} else {
+				System.out.println("typeId == null");
 				java.lang.reflect.Type propType = readMethod
 						.getGenericReturnType();
 				fieldType = fromJava(schemaBuilder, propType);

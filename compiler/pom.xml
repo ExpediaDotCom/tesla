@@ -235,6 +235,7 @@
         <version>2.3</version>
         <executions>
           <execution>
+            <id>shade-compiler</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -246,6 +247,23 @@
                 <transformer
                   implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <mainClass>com.expedia.tesla.compiler.Compiler</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+          <execution>
+            <id>shade-schema-generator</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <outputFile>${project.build.directory}/tesla-schema-generator-executable-${project.version}.jar</outputFile>
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.expedia.tesla.compiler.SchemaGenerator</mainClass>
                 </transformer>
               </transformers>
             </configuration>
