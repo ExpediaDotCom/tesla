@@ -1,16 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla</artifactId>
-    <version>4.0-SNAPSHOT</version>
+    <version>4.0</version>
   </parent>
 
   <groupId>com.expedia.tesla</groupId>
   <artifactId>tesla-compiler-maven-plugin</artifactId>
-  <version>4.0-SNAPSHOT</version>
+  <version>4.0</version>
   <packaging>maven-plugin</packaging>
   <name>tesla-compiler-maven-plugin Maven Plugin</name>
 
@@ -22,7 +21,7 @@
     <dependency>
       <groupId>com.expedia.tesla</groupId>
       <artifactId>tesla-compiler</artifactId>
-      <version>4.0-SNAPSHOT</version>
+      <version>4.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
