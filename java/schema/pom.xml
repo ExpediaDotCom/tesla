@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla-libraries</artifactId>
-    <version>4.0</version>
+    <version>4.0-SNAPSHOT</version>
   </parent>
 
   <groupId>com.expedia.tesla</groupId>
   <artifactId>tesla-schema</artifactId>
-  <version>4.0</version>
+  <version>4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>tesla-schema</name>
 
@@ -21,7 +21,7 @@
     <dependency>
       <groupId>com.expedia.tesla</groupId>
       <artifactId>tesla-core</artifactId>
-      <version>4.0</version>
+      <version>4.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
