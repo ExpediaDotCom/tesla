@@ -35,7 +35,7 @@
     <module>java</module>
     <module>compiler</module>
     <module>compiler-maven-plugin</module>
-	<module>examples/java</module>
+    <module>examples/java</module>
   </modules>
 
   <scm>

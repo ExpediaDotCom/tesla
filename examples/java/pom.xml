@@ -6,6 +6,7 @@
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla</artifactId>
     <version>4.1-SNAPSHOT</version>
+	<relativePath>../../</relativePath>
   </parent>
   
   <groupId>com.expedia.tesla</groupId>
