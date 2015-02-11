@@ -5,20 +5,20 @@
   <parent>
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla-demo</artifactId>
-    <version>4.0-SNAPSHOT</version>
+    <version>4.1-SNAPSHOT</version>
   </parent>
 
   <groupId>com.expedia.tesla.demo</groupId>
   <artifactId>hotelsvc</artifactId>
   <packaging>jar</packaging>
-  <version>4.0-SNAPSHOT</version>
+  <version>4.1-SNAPSHOT</version>
   <name>hotelsvc</name>
   
   <dependencies>
     <dependency>
       <groupId>com.expedia.tesla.demo</groupId>
       <artifactId>hotel</artifactId>
-      <version>4.0-SNAPSHOT</version>
+      <version>4.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.expedia.tesla</groupId>
@@ -57,7 +57,7 @@
       <plugin>
         <groupId>com.expedia.tesla</groupId>
         <artifactId>tesla-compiler-maven-plugin</artifactId>
-        <version>4.0-SNAPSHOT</version>
+        <version>4.1-SNAPSHOT</version>
         <configuration>
           <classes>
             <param>com.expedia.tesla.demo.Hotel</param>
