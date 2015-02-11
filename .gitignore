@@ -3,3 +3,6 @@ settings.xml
 **/.settings/
 **/.classpath
 **/.project
+*.versionsBackup
+
+release.properties

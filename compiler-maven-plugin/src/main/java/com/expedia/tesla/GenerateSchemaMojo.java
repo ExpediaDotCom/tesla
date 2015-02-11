@@ -36,6 +36,7 @@ import org.apache.maven.project.MavenProject;
 
 import com.expedia.tesla.SchemaVersion;
 import com.expedia.tesla.compiler.SchemaGenerator;
+import com.expedia.tesla.compiler.Util;
 
 /**
  * Generate Tesla schema from Java by reflection.
@@ -84,6 +85,7 @@ public class GenerateSchemaMojo extends AbstractMojo
     	log.debug(String.format("Output: %s", outputTml));
     	OutputStream os = null;
     	try {
+    		Util.forceMkdirParent(outputTml);
     		os = new FileOutputStream(outputTml);
 			SchemaGenerator.genTml(classes, 
 					new SchemaVersion(0L, schemaVersion.getVersionNumber(), 

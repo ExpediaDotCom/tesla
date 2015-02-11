@@ -2,6 +2,12 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>com.expedia.tesla</groupId>
+    <artifactId>tesla</artifactId>
+    <version>4.0-SNAPSHOT</version>
+  </parent>
+
   <groupId>com.expedia.tesla</groupId>
   <artifactId>tesla-compiler-maven-plugin</artifactId>
   <version>4.0-SNAPSHOT</version>
@@ -48,7 +54,7 @@
         <artifactId>maven-plugin-plugin</artifactId>
         <version>3.2</version>
         <configuration>
-          <goalPrefix>tesla-compiler-maven-plugin</goalPrefix>
+          <goalPrefix>tesla-compiler</goalPrefix>
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
         </configuration>
         <executions>

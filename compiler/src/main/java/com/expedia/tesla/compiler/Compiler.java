@@ -331,7 +331,7 @@ public class Compiler {
 		}
 	}
 
-	private String getOutputPath(String fullName) {
+	private String getOutputPath(String fullName) throws IOException {
 		String path = null;
 		if (this.language.equals("java")) {
 			path = FilenameUtils.concat(this.outputDir, fullName.replace('.', File.separatorChar)) + ".java";
@@ -343,10 +343,7 @@ public class Compiler {
 			path = FilenameUtils.concat(this.outputDir, tmp[tmp.length - 1] + ".h");
 		}
 		File file = new File(path);
-		File dir = file.getParentFile();
-		if (!dir.exists()) {
-			dir.mkdirs();
-		}
+		Util.forceMkdirParent(file);
 		return file.getAbsolutePath();
 	}
 

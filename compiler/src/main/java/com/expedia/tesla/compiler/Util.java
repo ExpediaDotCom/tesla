@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.commons.io.FileUtils;
+
 import com.expedia.tesla.schema.Schema;
 import com.expedia.tesla.schema.UserType;
 
@@ -288,5 +290,25 @@ public class Util {
 		return clzz;
 	}
 
-
+	/**
+	* Makes any necessary but nonexistent parent directories for a given File. If the parent directory cannot be
+	* created then an IOException is thrown. 
+	* <p>
+	* Workaround for {@code FileUtils.forceMkdirParent} in Apache Commons IO 2.5.
+	*
+	* @param file
+	*            file with parent to create, must not be {@code null}
+	* @throws NullPointerException
+	*             if the file is {@code null}
+	* @throws IOException
+	*             if the parent directory cannot be created
+	* @see <a herf="http://commons.apache.org/proper/commons-io/apidocs/org/apache/commons/io/FileUtils.html#forceMkdirParent(java.io.File)">FileUtils.forceMkdirParent</a>
+	*/
+	public static void forceMkdirParent(final File file) throws IOException {
+	    final File parent = file.getParentFile();
+	    if (parent == null) {
+	        return;
+	    }
+	    FileUtils.forceMkdir(parent);
+	}
 }

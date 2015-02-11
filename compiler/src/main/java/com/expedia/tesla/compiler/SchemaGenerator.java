@@ -16,6 +16,7 @@
 
 package com.expedia.tesla.compiler;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -153,7 +154,9 @@ public class SchemaGenerator {
 				jc.usage();
 				return;
 			}
-			try (OutputStream os = new FileOutputStream(p.outputFiles.get(0))) {
+			File file = new File(p.outputFiles.get(0));
+			Util.forceMkdirParent(file);
+			try (OutputStream os = new FileOutputStream(file)) {
 				genTml(p.rootClasses, p.schemaVersion, os, p.classpath);
 			} catch (ClassNotFoundException e) {
 				// ClassNotFoundException exception message only says the class name, add a little more information 
