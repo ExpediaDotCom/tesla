@@ -10,7 +10,7 @@
 
   <groupId>com.expedia.tesla</groupId>
   <artifactId>tesla</artifactId>
-  <version>4.0</version>
+  <version>4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>tesla</name>
   <description>Tesla Data Modelling</description>
@@ -39,7 +39,7 @@
 
   <scm>
     <connection>scm:git:https://github.com/ExpediaDotCom/tesla.git</connection>
-    <developerConnection>scm:git:https//github.com/ExpediaDotCom/tesla.git</developerConnection>
+    <developerConnection>scm:git:https://github.com/ExpediaDotCom/tesla.git</developerConnection>
     <url>https://github.com/ExpediaDotCom/tesla.git</url>
     <tag>HEAD</tag>
   </scm>
