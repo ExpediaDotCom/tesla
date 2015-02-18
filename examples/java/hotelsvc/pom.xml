@@ -49,7 +49,7 @@
   
   <properties>
     <generated.src.dir>${project.build.directory}/generated-sources/tesla/java</generated.src.dir>
-    <generated.tml>${project.build.directory}/generated-sources/tesla/tml/hotel.tml</generated.tml>
+    <generated.tml>${project.build.directory}/generated-resources/tesla/tml/hotel.tml</generated.tml>
   </properties>
 
   <build>
@@ -71,7 +71,7 @@
           <serializerClassName>com.expedia.tesla.demo.Serializer</serializerClassName>
           <tmls>
             <fileset>
-              <directory>${project.build.directory}/generated-sources/tesla/tml</directory>
+              <directory>${project.build.directory}</directory>
               <include>**/*.tml</include>
             </fileset>
           </tmls>
