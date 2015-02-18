@@ -332,12 +332,12 @@ public class JavaTypeMapper {
 			if (tidAnnotation != null) {
 				typeId = tidAnnotation.value();
 			}
+			java.lang.reflect.Type propType = readMethod
+					.getGenericReturnType();
+			fieldType = fromJava(schemaBuilder, propType);
 			if (typeId != null) {
 				fieldType = schemaBuilder.addType(typeId);
 			} else {
-				java.lang.reflect.Type propType = readMethod
-						.getGenericReturnType();
-				fieldType = fromJava(schemaBuilder, propType);
 				if (!(propType instanceof java.lang.Class<?> && ((java.lang.Class<?>) propType)
 						.isPrimitive())) {
 					fieldType = schemaBuilder.addType(String.format("nullable<%s>",

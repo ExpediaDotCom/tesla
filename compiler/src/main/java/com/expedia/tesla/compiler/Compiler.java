@@ -50,15 +50,20 @@ import com.expedia.tesla.schema.TeslaSchemaException;
  */
 public class Compiler {
 	
+	public static final String LANG_JAVA = "java";
+	public static final String LANG_CPP = "cpp";
+	public static final String LANG_CSHARP = "csharp";
+	private static final Map<String, String> LANG_ALIAS = new HashMap<>();
+	
 	@Parameter(names={"-l", "--language"}, description="The output code language (Java, C# or C++).")
-	private String language = "java";
+	private String language = LANG_JAVA;
 	
 	@Parameter(names={"-s", "--serializer"}, description="The full name the generated serializer class name " +
 			"(e.g. com.expedia.sample.AppSchema). Or C++ header file name without extension name.")
 	private String appSchemaClassName = null;
 	
 	@Parameter(names={"-o", "--output-dir"}, description="The output directory. Output to current directory by default.")
-	private String outputDir = System.getProperty("user.dir");
+	private File outputDir = new File(System.getProperty("user.dir"));
 	
 	@Parameter(names={"-c", "--class-template"}, description="User class source code template.")
 	private String classTemplatePath;
@@ -86,6 +91,15 @@ public class Compiler {
 	
 	@Parameter(names ={"-h", "--help"}, description="Show this help message.", help = true)
 	private boolean help;
+	
+	static {
+		LANG_ALIAS.put("java", LANG_JAVA);
+		LANG_ALIAS.put("c++", LANG_CPP);
+		LANG_ALIAS.put("cpp", LANG_CPP);
+		LANG_ALIAS.put("csharp", LANG_CSHARP);
+		LANG_ALIAS.put("cs", LANG_CSHARP);
+		LANG_ALIAS.put("c#", LANG_CSHARP);
+	}
 	
 	/**
 	 * Constructor.
@@ -116,7 +130,7 @@ public class Compiler {
 	 *  
 	 * @return the base output directory of the generated source code.
 	 */
-	public String getOutputDir() {
+	public File getOutputDir() {
 		return outputDir;
 	}
 
@@ -170,8 +184,8 @@ public class Compiler {
 	 *
 	 * @return the paths of schema files.
 	 */
-	public List<String> getSchemaFiles() {
-		return schemaFiles;
+	public Collection<String> getSchemaFiles() {
+		return new ArrayList<String>(schemaFiles);
 	}
 
 	/**
@@ -189,7 +203,7 @@ public class Compiler {
 	 * @param language the name of programming language we are generation source code
 	 */
 	public void setLanguage(String language) {
-		this.language = language;
+		this.language = LANG_ALIAS.get(language.toLowerCase());
 	}
 
 	/**
@@ -208,8 +222,18 @@ public class Compiler {
 	 * @param outputDir 
 	 * 		the base output directory of the generated source code.
 	 */
-	public void setOutputDir(String outputDir) {
+	public void setOutputDir(File outputDir) {
 		this.outputDir = outputDir;
+	}
+	
+	/**
+	 * Set the base output directory of the generated source code.
+	 * 
+	 * @param outputDir 
+	 * 		the base output directory of the generated source code.
+	 */
+	public void setOutputDir(String outputDir) {
+		setOutputDir(new File(outputDir));
 	}
 
 	/**
@@ -221,7 +245,7 @@ public class Compiler {
 	public void setClassTemplatePath(String classTemplatePath) {
 		this.classTemplatePath = classTemplatePath;
 	}
-
+	
 	/**
 	 * Set the user enum source code template.
 	 * 
@@ -231,7 +255,7 @@ public class Compiler {
 	public void setEnumTemplatePath(String enumTemplatePath) {
 		this.enumTemplatePath = enumTemplatePath;
 	}
-
+	
 	/**
 	 * Set the path of user serializer source code template.
 	 * 
@@ -264,7 +288,8 @@ public class Compiler {
 	 * 		the extension to set
 	 */
 	public void setExtension(Map<String, String> extension) {
-		this.extension = extension;
+		this.extension.clear();
+		this.extension.putAll(extension);
 	}
 
 	/**
@@ -273,10 +298,11 @@ public class Compiler {
 	 * @param schemaFiles
 	 *  	the list of schema file paths.
 	 */
-	public void setSchemaFiles(List<String> schemaFiles) {
-		this.schemaFiles = schemaFiles;
+	public void setSchemaFiles(Collection<String> schemaFiles) {
+		this.schemaFiles.clear();
+		this.schemaFiles.addAll(schemaFiles);
 	}
-
+	
 	/**
 	 * Set the classpath where compiler load Java classes for user extensions. 
 	 * <p>
@@ -332,17 +358,24 @@ public class Compiler {
 	}
 
 	private String getOutputPath(String fullName) throws IOException {
-		String path = null;
-		if (this.language.equals("java")) {
-			path = FilenameUtils.concat(this.outputDir, fullName.replace('.', File.separatorChar)) + ".java";
-		} else if (this.language.equals("csharp")) {
-			String[] tmp = fullName.split("\\.");
-			path = FilenameUtils.concat(this.outputDir, tmp[tmp.length - 1] + ".cs");
-		} else if (this.language.equals("cpp")) {
-			String[] tmp = fullName.split("\\.");
-			path = FilenameUtils.concat(this.outputDir, tmp[tmp.length - 1] + ".h");
+		int idx = fullName.lastIndexOf('.');
+		String shortName = idx == -1 ? fullName : fullName.substring(idx+1);
+		String fileName = shortName;
+		switch (this.language) {
+		case LANG_JAVA:
+			fileName = fullName.replace('.', File.separatorChar) + ".java";
+			break;
+		case LANG_CSHARP:
+			fileName += ".cs";
+			break;
+		case LANG_CPP:
+			fileName += ".h";
+			break;
+		default:
+			fileName += '.' + this.language;
+			break;
 		}
-		File file = new File(path);
+		File file = new File(FilenameUtils.concat(this.outputDir.getAbsolutePath(), fileName));
 		Util.forceMkdirParent(file);
 		return file.getAbsolutePath();
 	}
@@ -365,11 +398,11 @@ public class Compiler {
 	}
 
 	private Object createUtilObject() {
-		if (this.language.equals("java")) {
+		if (this.language.equals(LANG_JAVA)) {
 			return new JavaUtils();
-		} else if (this.language.equals("cpp")) {
+		} else if (this.language.equals(LANG_CPP)) {
 			return new CppUtils();
-		} else if (this.language.equals("csharp")) {
+		} else if (this.language.equals(LANG_CSHARP)) {
 			return new CSharpUtils();
 		}
 		return null;
@@ -395,7 +428,7 @@ public class Compiler {
 			appSchemaClassNamespace = this.appSchemaClassName.substring(0, pos);
 		}
 
-		String defaultTemplate = this.language.equals("java") ? "serializer.vm"
+		String defaultTemplate = this.language.equals(LANG_JAVA) ? "serializer.vm"
 				: "application_schema.vm";
 		TemplateEngine te = new TemplateEngine(this.language, this.appSchemaTemplatePath, defaultTemplate);
 		Map<String, Object> variables = new HashMap<>();
@@ -413,7 +446,7 @@ public class Compiler {
 		}
 	}
 
-	private MergedSchema mergeSchemas(List<String> values) throws TeslaSchemaException, IOException {
+	private MergedSchema mergeSchemas(Collection<String> values) throws TeslaSchemaException, IOException {
 		List<Schema> schemas = new ArrayList<>();
 		for (String path : Util.expandWildcard(values)) {
 			schemas.add(Schema.build(path));

@@ -141,6 +141,15 @@ public class SchemaGeneratorTest {
 	}
 	
 	@Test
+	public void testTypeIdAnnotationShortcut() throws Exception {
+		// BUG FIX: type id annotation shortcuts schema generation for referred type.
+		assertEquals("array<class<com.expedia.tesla.compiler.Hidden>>", 
+				mapClass(TestClass.class).findField("hiddenField").getType().getTypeId());
+		Class clss = (Class)schemaBuilder.findType("com.expedia.tesla.compiler.Hidden");
+		assertNotNull(clss.findField("flagField"));
+	}
+	
+	@Test
 	public void testStringReference() throws Exception {
 		assertEquals("reference<string>", 
 				mapClass(TestClass.class).findField("stringReferenceField").getType().getTypeId());
@@ -317,6 +326,14 @@ enum Sex {
 	Female
 }
 
+class Hidden {
+	public boolean isFlagField() {
+		return false;
+	}
+	public void setFlagField(boolean flagField) {
+	}
+}
+
 class TestClass extends Base {
 	
 	@NotNullable
@@ -352,6 +369,13 @@ class TestClass extends Base {
 		return 0;
 	}
 	public void setMagicField(Object v) {
+	}
+	
+	@TypeId("array<class<com.expedia.tesla.compiler.Hidden>>")
+	public Hidden getHiddenField() {
+		return null;
+	}
+	public void setHiddenField(Hidden v) {
 	}
 	
 	public String getStringField() {

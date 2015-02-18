@@ -34,7 +34,8 @@
   <modules>
     <module>java</module>
     <module>compiler</module>
-    <module>compiler-maven-plugin</module>
+    <module>tools/mavenplugin</module>
+	<module>tools/anttask</module>
     <module>examples/java</module>
   </modules>
 

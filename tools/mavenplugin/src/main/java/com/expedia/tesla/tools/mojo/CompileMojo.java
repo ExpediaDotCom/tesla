@@ -14,22 +14,31 @@
  * limitations under the License.
  *******************************************************************************/
 
-package com.expedia.tesla;
+package com.expedia.tesla.tools.mojo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.maven.model.FileSet;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
+
 import com.expedia.tesla.compiler.Compiler;
 
 /**
@@ -41,29 +50,32 @@ public class CompileMojo extends AbstractMojo {
 	private String language;
 
 	@Parameter(required = true)
-	private String outputDir;
+	private File outputDir;
 
 	@Parameter(required = true)
 	private String serializerClassName;
 
 	@Parameter
-	private String serializerTemplate;
+	private File serializerTemplate;
 
 	@Parameter(defaultValue = "false", required = true)
 	private boolean generateTypes;
 
 	@Parameter
-	private String classTemplate;
+	private File classTemplate;
 
 	@Parameter
-	private String enumTemplate;
+	private File enumTemplate;
 
 	@Parameter
 	private Map<String, String> extension = new HashMap<String, String>();
 
 	@Parameter(required = true)
-	private List<String> tmls = new ArrayList<String>();
+	private List<FileSet> tmls = new ArrayList<FileSet>();
 
+	@Parameter(defaultValue="${project}", readonly=true, required=true)
+	private MavenProject project;
+	
 	@Override
 	public void execute() throws MojoExecutionException {
 		Log log = getLog();
@@ -83,18 +95,38 @@ public class CompileMojo extends AbstractMojo {
 			compiler.setLanguage(language);
 			compiler.setOutputDir(outputDir);
 			compiler.setAppSchemaClassName(serializerClassName);
-			compiler.setAppSchemaTemplatePath(serializerTemplate);
+			if (serializerTemplate != null) {
+				compiler.setAppSchemaTemplatePath(serializerTemplate.getAbsolutePath());
+			}
 			compiler.setNotGenerateUserTypes(!generateTypes);
-			compiler.setClassTemplatePath(classTemplate);
-			compiler.setEnumTemplatePath(enumTemplate);
+			if (classTemplate != null) {
+				compiler.setClassTemplatePath(classTemplate.getAbsolutePath());
+			}
+			if (enumTemplate != null) {
+				compiler.setEnumTemplatePath(enumTemplate.getAbsolutePath());
+			}
 			compiler.setExtension(extension);
-			compiler.setSchemaFiles(tmls);
+			compiler.setSchemaFiles(getTmlFiles());
 			compiler.compile();
 		} catch (Exception e) {
 			throw new MojoExecutionException(
 					"Failed to generate Tesla schema from Java.", e);
 		}
 		log.info("Generated source code from Tesla schemas successfully.");
+	}
+	
+	private Set<String> getTmlFiles() throws IOException {
+		Set<String> files = new HashSet<>();
+		for (FileSet fileSet : tmls) {
+			File directory = (fileSet.getDirectory() == null) ? 
+					this.project.getBasedir() : new File(fileSet.getDirectory());
+			String includes = StringUtils.join(fileSet.getIncludes(), ',');
+            String excludes = StringUtils.join(fileSet.getExcludes(), ',');
+            for (File file : FileUtils.getFiles(directory, includes, excludes)) {
+            	files.add(file.getAbsolutePath());
+            }
+		}
+		return files;
 	}
 
 	public static class TmlVersionInfo {

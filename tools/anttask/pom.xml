@@ -1,0 +1,96 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.expedia.tesla</groupId>
+    <artifactId>tesla</artifactId>
+    <version>4.1-SNAPSHOT</version>
+    <relativePath>../../</relativePath>
+  </parent>
+
+  <groupId>com.expedia.tesla</groupId>
+  <artifactId>tesla-ant-task</artifactId>
+  <version>4.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.expedia.tesla</groupId>
+      <artifactId>tesla-compiler</artifactId>
+      <version>4.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.expedia.tesla.demo</groupId>
+      <artifactId>hotel</artifactId>
+      <version>4.1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        
+        <executions>
+          <execution>
+            <id>test-schema-generation-task</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <target name="testtmlgentask" description="Test schema generation task">
+                <property name="maven.classpath" refid="maven.test.classpath" />
+                <taskdef name="test-schema-generation-task" classname="com.expedia.tesla.tools.anttask.GenerateSchemaAntTask"
+                  classpath="${maven.classpath}" />
+                <test-schema-generation-task outputTml="target/generated-resources/tesla/schema/generated.tml"
+                  classpath="${maven.classpath}">
+                  <class name="com.expedia.tesla.demo.Hotel" />
+                  <version number="1" name="demo v1"/>
+                </test-schema-generation-task>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          
+          <execution>
+            <id>test-compiler-task</id>
+            <phase>integration-test</phase>
+            <configuration>
+              <target name="testcompiletask" description="Test tesla compiler task">
+                <property name="maven.classpath" refid="maven.runtime.classpath" />
+                <taskdef name="test-compiler-task" classname="com.expedia.tesla.tools.anttask.CompilerAntTask"
+                  classpath="${maven.classpath}" />
+
+                <test-compiler-task language="c++" outputDir="${project.build.directory}/generated-sources/cpp"
+                  serializer="com.expedia.tesla.tools.anttask.test.Serializer" serializerTemplate="test_serializer.vm"
+                  generateTypes="false" classTemplate="test_class.vm" enumTemplate="test_enum.vm">
+                  <extension name="extname1" className="com.expedia.tesla.compiler.plugins.JavaTypeMapper" />
+                  <extension name="extname2" className="com.expedia.tesla.compiler.plugins.JavaTypeMapper" />
+                  <fileset dir="../../compiler/src/test/resources" casesensitive="yes">
+                    <include name="**/**.tml" />
+                    <exclude name="**/failcompile/**" />
+                  </fileset>
+                </test-compiler-task>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

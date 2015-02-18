@@ -14,7 +14,7 @@
  * limitations under the License.
  *******************************************************************************/
 
-package com.expedia.tesla;
+package com.expedia.tesla.tools.mojo;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -1,9 +1,7 @@
 package com.expedia.tesla.demo;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Objects;
 
 import com.expedia.tesla.schema.annotation.NotNullable;
 import com.expedia.tesla.schema.annotation.TypeId;
@@ -39,7 +37,7 @@ public class Hotel extends IdObject
 		this.attributes = attributes;
 	}
 	
-	@TypeId("array[java.util.Collection,java.util.HashSet]<reference<class<Room>>>)")
+	@TypeId("array[java.util.Collection,java.util.HashSet]<reference<class<com.expedia.tesla.demo.Room>>>)")
 	public Collection<Room> getRooms() {
 		return rooms;
 	}

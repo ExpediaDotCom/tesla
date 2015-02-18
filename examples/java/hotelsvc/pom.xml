@@ -56,7 +56,7 @@
     <plugins>
       <plugin>
         <groupId>com.expedia.tesla</groupId>
-        <artifactId>tesla-compiler-maven-plugin</artifactId>
+        <artifactId>tesla-maven-plugin</artifactId>
         <version>4.1-SNAPSHOT</version>
         <configuration>
           <classes>
@@ -70,7 +70,10 @@
           <outputDir>${generated.src.dir}</outputDir>
           <serializerClassName>com.expedia.tesla.demo.Serializer</serializerClassName>
           <tmls>
-            <tml>${generated.tml}</tml>
+            <fileset>
+              <directory>${project.build.directory}/generated-sources/tesla/tml</directory>
+              <include>**/*.tml</include>
+            </fileset>
           </tmls>
         </configuration>
         <executions>
