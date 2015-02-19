@@ -3,14 +3,14 @@
   <parent>
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla-demo</artifactId>
-    <version>4.1</version>
+    <version>4.2-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.expedia.tesla.demo</groupId>
   <artifactId>hotel</artifactId>
   <packaging>jar</packaging>
-  <version>4.1</version>
+  <version>4.2-SNAPSHOT</version>
   <name>hotel</name>
 
   <dependencies>
