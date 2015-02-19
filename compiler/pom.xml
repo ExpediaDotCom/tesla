@@ -3,30 +3,30 @@
   <parent>
     <groupId>com.expedia.tesla</groupId>
     <artifactId>tesla</artifactId>
-    <version>4.1-SNAPSHOT</version>
+    <version>4.1</version>
   </parent>
 
   <groupId>com.expedia.tesla</groupId>
   <artifactId>tesla-compiler</artifactId>
   <packaging>jar</packaging>
-  <version>4.1-SNAPSHOT</version>
+  <version>4.1</version>
   <name>tesla-compiler</name>
   
   <dependencies>
     <dependency>
       <groupId>com.expedia.tesla</groupId>
       <artifactId>tesla-core</artifactId>
-      <version>4.1-SNAPSHOT</version>
+      <version>4.1</version>
     </dependency>
     <dependency>
       <groupId>com.expedia.tesla</groupId>
       <artifactId>tesla-schema</artifactId>
-      <version>4.1-SNAPSHOT</version>
+      <version>4.1</version>
     </dependency>
     <dependency>
       <groupId>com.expedia.tesla</groupId>
       <artifactId>tesla-annotation</artifactId>
-      <version>4.1-SNAPSHOT</version>
+      <version>4.1</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
