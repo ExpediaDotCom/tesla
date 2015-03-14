@@ -70,7 +70,7 @@ Built in language support:
 
 - Java
 - C++
-- CSharp
+- C#
 
 All programming languages use the same compiler to generate source code. The Tesla compiler itself is written in Java.
 
