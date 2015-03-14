@@ -49,7 +49,7 @@ Models a polymorphic object. For example, an object property that holds referenc
 
 ### Nullabilty
 
-Non-numeric data type values can be null, this include String, Binary, Object and Array. Numeric types, including boolean, signed and unsigned integer types, float/double, and enum, can NOT be null. They always have some value.
+Non-numeric data type values can be null. This includes String, Binary, Object and Array. Numeric types, including boolean, signed and unsigned integer types, float/double, and enum, can NOT be null. They always have some value.
 
 ### Reference
 
