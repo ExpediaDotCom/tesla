@@ -95,7 +95,7 @@
             else if (schemaHash == ${classVersion.Key.SchemaHash}L) // version $classVersion.Key.VersionNumber, $classVersion.Key.Name
             {
 #foreach( $field in $classVersion.Value.AllFields )
-                writer.$util.getWriteMethod($field)("$field.DisplayName", this.$fieldName#if($field.IsArray || $field.Type.canBeOptional())#if($field.IsOptional), true#else, false#end#end#if($field.Rank > 0), $field.Rank#end);
+                writer.$util.getWriteMethod($field)("$field.DisplayName", this.$fieldName#if($field.Type.isArray() || $util.getElementType($field.Type).isClass() || $util.getElementType($field.Type).Name == "binary" || $util.getElementType($field.Type).Name == "string")#if($field.Type.isNullable()), true#else, false#end#end#if($field.Type.isArray()), $field.Rank#end);
 #end
             }
 #end
@@ -110,7 +110,6 @@
         /// Deserializes the object.
         /// </summary>
         /// <param name="reader">The reader parameter.</param>
-#foreach( $field in $allFields)#if( $field.getRank() > 1)#set( $hasArray = true)#end#end
         public #if($hasBase) new #end void Deserialize(ITeslaReader reader)
         {
             reader.ReadObjectBegin("$class.ShortName");
@@ -123,7 +122,7 @@
             else if (schemaHash == ${classVersion.Key.SchemaHash}L) // version $classVersion.Key.VersionNumber, $classVersion.Key.Name
             {
 #foreach( $field in $classVersion.Value.AllFields )        
-                this.$fieldName = #if($field.getRank() > 0)($fieldType)#end reader.$util.getReadMethod($field)("$field.DisplayName"#if($field.IsArray || $field.Type.canBeOptional())#if($field.IsOptional), true#else, false#end#end#if($field.Rank > 0), $field.Rank#end);
+                this.$fieldName = #if($field.Type.isArray())($fieldType)#end reader.$util.getReadMethod($field)("$field.DisplayName"#if($field.Type.isArray() || $util.getElementType($field.Type).isClass() || $util.getElementType($field.Type).Name == "binary" || $util.getElementType($field.Type).Name == "string")#if($field.Type.isNullable()), true#else, false#end#end#if($field.Type.isArray()), $field.Rank#end);
 #end
             }
 #end

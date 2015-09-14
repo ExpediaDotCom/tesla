@@ -320,6 +320,8 @@ public class Compiler {
 	 * @throws Exception
 	 */
 	public void compile() throws Exception {
+		// normalize language name
+		setLanguage(this.language);
 		MergedSchema ms = mergeSchemas(schemaFiles);
 		if (!this.notGenerateUserTypes) {
 			writeClasses(ms.getClasses());

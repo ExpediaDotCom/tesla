@@ -19,11 +19,8 @@ package com.expedia.tesla.compiler.plugins;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang.StringEscapeUtils;
-
 import com.expedia.tesla.compiler.Util;
 import com.expedia.tesla.schema.Array;
-import com.expedia.tesla.schema.Enum;
 import com.expedia.tesla.schema.Field;
 import com.expedia.tesla.schema.Nullable;
 import com.expedia.tesla.schema.Primitive;
@@ -90,37 +87,66 @@ public class CSharpUtils extends Util {
 			return String.format("List<%s>", getCSharpListType(typeName, rank - 1));
 		}
 	}
-
-	public String getWriteMethod(Field field) {
-		return getReadWriteMethod(field, "Write");
-	}
-
-	public String getReadMethod(Field field) {
-		return getReadWriteMethod(field, "Read");
-	}
 	
-	private String getReadWriteMethod(Field field, String rw) {
-		if (field.getRank() == 0) {
-			// Non-array.
-			if (field.getType() instanceof Enum) {
-				return String.format("%s<%s>", rw, getCSharpFieldTypeName(field));
-			} else {
-				return rw;
-			}
+	public String getWriteMethod(Field field) {
+		Type fieldType = field.getType();
+		Type elementType = getElementType(fieldType);
+		String genericType = "<" + getCSharpFieldTypeName(field) + ">";
+		
+		// C# runtime library doesn't have poly, map and reference support yet.
+		if (!fieldType.isArray()) {
+			return "Write" + (fieldType.isEnum() ? genericType : "");
 		} else {
-			// Arrays
-			if (field.getType() instanceof Primitive) {
-				return String.format("%s%sArray", rw, ((Primitive) field.getType()).getName());
-			} else if (field.getType() instanceof Enum) {
-				return String.format("%sEnum<%s>", rw, getCSharpFieldTypeName(field));
+			if (elementType.isPrimitive()) {
+				return "Write" + camelize((Primitive)elementType) + "Array";
+			} else if (elementType.isEnum()) {
+				return "WriteEnumArray" + genericType;
+			} else if (elementType.isClass()){
+				return "WriteObjectArray" + genericType;
 			} else {
-				return String.format("%sObjectArray<%s>", rw, getCSharpFieldTypeName(field));
+				return "WriteUnsupportedTypeArray";
 			}
 		}
 	}
 
-	public String escapeStringLiteral(String str) {
-		return '\"' + StringEscapeUtils.escapeJava(str) + '\"';
+	public String getReadMethod(Field field) {
+		String method = "Read";
+		
+		Type fieldType = field.getType();
+		Type elementType = getElementType(fieldType);
+
+		// C# runtime library doesn't have poly, map and reference support yet.
+		if (elementType.isPrimitive()) {
+			method += camelize((Primitive)elementType);
+		} else if (elementType.isEnum()) {
+			method += "Enum";
+		} else if (elementType.isClass()) {
+			method += "Object"; 
+		} else {
+			method += "UnsupportedType";
+		}
+
+		if (fieldType.isArray()) {
+			method += "Array";
+		}
+
+		if (elementType.isEnum() || elementType.isClass()) {
+			method += "<" + getCSharpFieldTypeName(field) + ">";
+		}
+		return method;
+	}
+
+	private String camelize(Primitive type) {
+		String tn = type.getName();
+		int cc = tn.startsWith("u", 0) ? 2 : 1;
+		return tn.substring(0, cc).toUpperCase() + tn.substring(cc); 
+	}
+	
+	public Type getElementType(Type type) {
+		if (type.isArray()) return getElementType(((Array)type).getElementType());
+		if (type.isNullable()) return getElementType(((Nullable)type).getElementType());
+		if (type.isReference()) return getElementType(((Reference)type).getElementType());
+		return type;
 	}
 
 }

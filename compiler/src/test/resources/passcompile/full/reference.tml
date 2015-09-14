@@ -4,24 +4,24 @@
   <namespace name="com.expedia.tesla.compiler.test.passcompile.full.referencetest" />
   <types>
 	
-	<class name="TestEmbeddedObject">
+	<class name="ReferenceTestEmbeddedObject">
 	  <field name="IntField" type="int32" />
 	</class>
 	
-	<enum name="TestEnum">
+	<enum name="ReferenceTestEnum">
 	  <entry name="Info" value="1" />
 	  <entry name="Warning" value="2" />
 	  <entry name="Error" value="3" />
 	</enum>
 	
     <class name="ObjectReference">
-      <field name="ReferenceField1" type="TestEmbeddedObject" reference="true" />
-      <field name="ReferenceField2" type="TestEmbeddedObject" reference="true" />
+      <field name="ReferenceField1" type="ReferenceTestEmbeddedObject" reference="true" />
+      <field name="ReferenceField2" type="ReferenceTestEmbeddedObject" reference="true" />
     </class>
       
     <class name="EnumReference">
-      <field name="ReferenceField1" type="TestEnum" reference="true" />
-      <field name="ReferenceField2" type="TestEnum" reference="true" />
+      <field name="ReferenceField1" type="ReferenceTestEnum" reference="true" />
+      <field name="ReferenceField2" type="ReferenceTestEnum" reference="true" />
     </class>
       
     <class name="Int32Reference">
@@ -45,7 +45,7 @@
     </class>
 
     <class name="ReferenceArray">
-      <field name="ReferenceArrayField" type="array(reference(TestEmbeddedObject))" />
+      <field name="ReferenceArrayField" type="array(reference(ReferenceTestEmbeddedObject))" />
     </class>
 
   </types> 
