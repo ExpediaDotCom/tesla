@@ -92,7 +92,7 @@ mvn clean install
 Try to run Tesla compiler with the command
 
 ```
-java -jar compiler/target/tesla-compiler-executable-1.0-SNAPSHOT.jar
+java -jar compiler/target/tesla-compiler-executable-4.2-SNAPSHOT.jar
 ```
 
 Tesla compiler will give a usage message. Now we have built Tesla compiler successfully. Let's move on to create a Hello World application in Java. 
