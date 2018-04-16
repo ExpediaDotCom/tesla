@@ -19,11 +19,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import static org.junit.Assert.*;
+
+import com.expedia.tesla.schema.tml.v2.ObjectFactory;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -168,8 +171,9 @@ public class SchemaTest {
 
 		Collection<UserType> types = schema.getUserTypes();
 
-		assertTrue(types.iterator().next().isClass());
-		Class class1 = (Class) types.iterator().next();
+		Iterator<UserType> itr = types.iterator();
+		assertTrue(itr.next().isClass());
+		Class class1 = (Class) itr.next();
 
 		assertTrue(class1.getName().contains("TeslaClass"));
 
